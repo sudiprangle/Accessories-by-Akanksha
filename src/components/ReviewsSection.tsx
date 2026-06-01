@@ -30,13 +30,11 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
   const [submittedMessage, setSubmittedMessage] = useState('');
 
   useEffect(() => {
-    // Load reviews from localStorage or seed some
     const cacheKey = `akanksha_reviews_${productId}`;
     const stored = localStorage.getItem(cacheKey);
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as Review[];
-        // Filter out any older mock/seeded reviews
         const filtered = parsed.filter(item => !item.id.startsWith('seed-'));
         setReviews(filtered);
       } catch (err) {
@@ -51,8 +49,9 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
     e.preventDefault();
     if (!authorName.trim() || !comment.trim()) return;
 
+    const newReviewId = `rev-${Date.now()}-${Math.random()}`;
     const newReview: Review = {
-      id: `rev-${Date.now()}-${Math.random()}`,
+      id: newReviewId,
       author: authorName.trim(),
       rating,
       comment: comment.trim(),

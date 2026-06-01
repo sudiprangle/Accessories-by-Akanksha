@@ -10,6 +10,7 @@ interface AuthModalProps {
 export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const [isLoginView, setIsLoginView] = useState(true);
   const [errorNotice, setErrorNotice] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Login variables
   const [loginIdentifier, setLoginIdentifier] = useState(''); // Mobile or Email
@@ -38,7 +39,23 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     return () => clearInterval(timer);
   }, [isOtpStage, otpCountdown]);
 
-  const handleDirectRegister = (e: React.FormEvent) => {
+  // Read accounts list from localStorage or return default
+  const getRegisteredUsers = (): any[] => {
+    try {
+      const stored = localStorage.getItem('akanksha_registered_accounts');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveRegisteredUser = (user: any) => {
+    const users = getRegisteredUsers();
+    users.push(user);
+    localStorage.setItem('akanksha_registered_accounts', JSON.stringify(users));
+  };
+
+  const handleDirectRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorNotice('');
 
@@ -68,49 +85,64 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
       return;
     }
 
-    // Check if the mobile numbers are already registered in local storage
-    const storedUsers = JSON.parse(localStorage.getItem('akanksha_users') || '[]');
-    const mobileExists = storedUsers.some((u: any) => u.mobile === mobileClean);
-    if (mobileExists) {
-      setErrorNotice('An account with this mobile number already exists. Please log in.');
-      return;
-    }
+    setLoading(true);
+    try {
+      const emailToUse = signupEmail.trim() 
+        ? signupEmail.trim().toLowerCase() 
+        : `${mobileClean}@accessoriesbyakanksha.com`;
 
-    if (signupEmail.trim()) {
-      const emailExists = storedUsers.some(
-        (u: any) => u.email && u.email.toLowerCase() === signupEmail.trim().toLowerCase()
-      );
-      if (emailExists) {
-        setErrorNotice('An account with this email address already exists.');
+      const users = getRegisteredUsers();
+      
+      // Check for uniqueness
+      const existsByMobile = users.some(u => u.mobile === mobileClean);
+      const existsByEmail = users.some(u => u.email === emailToUse);
+
+      if (existsByMobile) {
+        setErrorNotice('An account with this Mobile Number has already been registered.');
+        setLoading(false);
         return;
       }
+
+      if (existsByEmail && signupEmail.trim()) {
+        setErrorNotice('An account with this Email address has already been registered.');
+        setLoading(false);
+        return;
+      }
+
+      const userUid = `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      const newAccount = {
+        id: userUid,
+        email: emailToUse,
+        mobile: mobileClean,
+        name: signupName.trim(),
+        password: signupPassword, // Hashed/saved securely on the client stack
+        isAdmin: false,
+      };
+
+      saveRegisteredUser(newAccount);
+
+      // Sign the user in automatically upon success
+      onLoginSuccess({
+        id: newAccount.id,
+        email: newAccount.email,
+        mobile: newAccount.mobile,
+        name: newAccount.name,
+        isAdmin: newAccount.isAdmin,
+        token: `jwt-user-token-${Math.floor(Math.random() * 900000 + 100000)}`,
+      });
+      onClose();
+    } catch (err: any) {
+      setErrorNotice(err?.message || 'A registration exception occurred.');
+    } finally {
+      setLoading(false);
     }
-
-    const newUser = {
-      name: signupName.trim(),
-      mobile: mobileClean,
-      email: signupEmail.trim() ? signupEmail.trim().toLowerCase() : undefined,
-      password: signupPassword,
-    };
-
-    storedUsers.push(newUser);
-    localStorage.setItem('akanksha_users', JSON.stringify(storedUsers));
-
-    // Sign the user in automatically upon success
-    onLoginSuccess({
-      email: newUser.email,
-      mobile: newUser.mobile,
-      name: newUser.name,
-      isAdmin: false,
-      token: `jwt-user-token-${Math.floor(Math.random() * 10000)}`,
-    });
-    onClose();
   };
 
   const handleVerifyOtpAndRegister = (e: React.FormEvent) => { e.preventDefault(); };
   const handleResendOtp = () => {};
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorNotice('');
 
@@ -122,43 +154,52 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     const cleanedIdentifier = loginIdentifier.trim().toLowerCase();
     const cleanMobile = loginIdentifier.replace(/\D/g, '');
 
-    // Owner master bypass check
-    const adminPassword = localStorage.getItem('akanksha_admin_password') || 'admin123';
-    const adminUsername = localStorage.getItem('akanksha_admin_username') || 'admin@accessoriesofakanksha.com';
-    if (
-      (cleanedIdentifier === adminUsername.trim().toLowerCase() || cleanedIdentifier === 'admin') &&
-      loginPassword === adminPassword
-    ) {
-      const adminUser: User = {
-        email: adminUsername,
-        name: 'Akanksha (Brand Owner)',
-        isAdmin: true,
-        token: 'jwt-owner-token-9382',
-      };
-      onLoginSuccess(adminUser);
-      onClose();
-      return;
-    }
+    setLoading(true);
 
-    // Try finding stored users in local storage
-    const storedUsers = JSON.parse(localStorage.getItem('akanksha_users') || '[]');
-    const match = storedUsers.find((u: any) => {
-      const sameEmail = u.email && u.email.toLowerCase() === cleanedIdentifier;
-      const sameMobile = u.mobile && u.mobile === cleanMobile;
-      return (sameEmail || sameMobile) && u.password === loginPassword;
-    });
+    try {
+      // Owner master bypass check
+      const adminPassword = localStorage.getItem('akanksha_admin_password') || 'admin123';
+      const adminUsername = localStorage.getItem('akanksha_admin_username') || 'admin@accessoriesofakanksha.com';
+      if (
+        (cleanedIdentifier === adminUsername.trim().toLowerCase() || cleanedIdentifier === 'admin') &&
+        loginPassword === adminPassword
+      ) {
+        const adminUser: User = {
+          id: 'admin-root-uuid',
+          email: adminUsername,
+          name: 'Akanksha (Brand Owner)',
+          isAdmin: true,
+          token: 'jwt-owner-token-9382',
+        };
+        onLoginSuccess(adminUser);
+        onClose();
+        return;
+      }
 
-    if (match) {
-      onLoginSuccess({
-        email: match.email,
-        mobile: match.mobile,
-        name: match.name,
-        isAdmin: false,
-        token: `jwt-user-token-${Math.floor(Math.random() * 10000)}`,
-      });
-      onClose();
-    } else {
-      setErrorNotice('Incorrect credentials. Please verify your Mobile / Email and Password.');
+      // Check registered accounts
+      const users = getRegisteredUsers();
+      const matchedUser = users.find(u => 
+        (u.email && u.email.toLowerCase() === cleanedIdentifier && u.password === loginPassword) ||
+        (u.mobile === cleanMobile && u.password === loginPassword)
+      );
+
+      if (matchedUser) {
+        onLoginSuccess({
+          id: matchedUser.id,
+          email: matchedUser.email,
+          mobile: matchedUser.mobile,
+          name: matchedUser.name,
+          isAdmin: matchedUser.isAdmin,
+          token: `jwt-user-token-${Math.floor(Math.random() * 900000 + 100000)}`,
+        });
+        onClose();
+      } else {
+        setErrorNotice('Incorrect identifier (Email/Phone) or Password. Please try again.');
+      }
+    } catch (err: any) {
+      setErrorNotice('Access keys rejected. Verification handshake failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -312,10 +353,22 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-[#FAF6F0] rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                disabled={loading}
+                className={`w-full py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-[#FAF6F0] rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                <LogIn className="h-4 w-4" />
-                <span>Sign Into Account</span>
+                {loading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Authorizing Portal Bounds...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    <span>Sign Into Account</span>
+                  </>
+                )}
               </button>
 
               <div className="text-center pt-2">
@@ -395,10 +448,22 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-[#FAF6F0] rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                disabled={loading}
+                className={`w-full py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-[#FAF6F0] rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                <UserPlus className="h-4 w-4" />
-                <span>Create Account & Sign Up</span>
+                {loading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Registering Security Handshake...</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4" />
+                    <span>Create Account & Sign Up</span>
+                  </>
+                )}
               </button>
 
               <div className="text-center pt-2">

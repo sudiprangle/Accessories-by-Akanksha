@@ -137,7 +137,7 @@ export default function CheckoutModal({
         date: new Date().toISOString().split('T')[0],
         customerName: `${shippingForm.firstName} ${shippingForm.lastName}`.trim(),
         customerEmail: currentUser?.email || shippingForm.email || 'N/A',
-        customerUserId: currentUser?.email || currentUser?.mobile || '',
+        customerUserId: currentUser?.id || currentUser?.email || currentUser?.mobile || '',
         shippingAddress: {
           address: shippingForm.address,
           city: shippingForm.city,
@@ -165,12 +165,15 @@ export default function CheckoutModal({
         trackingNumber: trackingNo,
       };
 
+      setCompletedOrder(newOrder);
+
       // Construct data payload for Google Sheet via Google Apps Script Web App with comprehensive header variations
       const productNamesCombined = cartItems.map(item => item.product.name).join(', ');
       const productDetailsCombined = cartItems.map(item => `${item.product.name} (Qty: ${item.quantity}, Color: ${item.selectedColor || 'Gold'}, Size: ${item.selectedSize || 'Standard'})`).join(', ');
 
       const syncPayload = {
         // Screenshot payload
+        orderId: orderId,
         paymentScreenshot: paymentScreenshotVal,
         transactionRef: transactionRef.trim() || 'NA',
         // First name & Last name combinations
@@ -292,23 +295,22 @@ export default function CheckoutModal({
         TotalPrice: total
       };
 
-      // Send JSON payload directly to the specified Google Apps Script Web App URL
+      // Send JSON payload directly to the specified Google Apps Script Web App URL acting as your Google Sheets backend
       fetch('https://script.google.com/macros/s/AKfycbzn-sINHollCHAsD0tWiEKK-y7U0lKSWeGJ1FxZXW7LtmQa-Ydap3Bdb9VlySvcoXSi/exec', {
         method: 'POST',
-        mode: 'no-cors', // Bypasses CORS browser pre-flight checks specifically required for standalone Google Apps Script end points
+        mode: 'no-cors', // Bypasses CORS browser pre-flight checks specifically required for standalone Google Apps Script endpoints
         headers: {
           'Content-Type': 'text/plain',
         },
         body: JSON.stringify(syncPayload),
       })
       .then(() => {
-        console.log('Order synchronization payload delivered successfully.');
+        console.log('Order synchronization payload delivered successfully to Google Sheet.');
       })
       .catch((err) => {
         console.warn('Silent fallback for tracking transmission:', err);
       });
 
-      setCompletedOrder(newOrder);
       setIsProcessing(false);
       setStep(3);
     }, 2800);

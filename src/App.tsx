@@ -21,7 +21,6 @@ import {
 
 import { Product, CartItem, Order, User } from './types';
 import { products as baseProducts, reviews as customerReviews } from './data/products';
-
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProductCard from './components/ProductCard';
@@ -256,6 +255,12 @@ export default function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('akanksha_user');
+    setCart([]);
+    localStorage.removeItem('akanksha_cart');
+    setWishlist([]);
+    localStorage.removeItem('akanksha_wishlist');
+    setOrders([]);
+    localStorage.removeItem('akanksha_orders');
   };
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {

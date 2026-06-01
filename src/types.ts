@@ -71,6 +71,7 @@ export interface CustomerReview {
 }
 
 export interface User {
+  id?: string;
   email?: string;
   mobile?: string;
   name: string;

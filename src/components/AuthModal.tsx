@@ -342,7 +342,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                   value={signupName}
                   onChange={(e) => setSignupName(e.target.value)}
                   className="w-full bg-white border border-[#D4C19D]/20 rounded-xl px-3 py-2.5 text-xs text-gray-755 focus:outline-none focus:border-[#b89153]"
-                  placeholder="e.g. Akanksha Rangle"
+                  placeholder="e.g. Akanksha Rakshe"
                 />
               </div>
 

@@ -534,6 +534,52 @@ export default function OrderTracker({
                 </>
               )}
 
+              {/* Payment Proof Details and Transaction Identifier */}
+              {(activeTrackOrder.paymentScreenshot || activeTrackOrder.transactionRef) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-3 rounded-xl border border-[#D4C19D]/10 text-left">
+                  {activeTrackOrder.paymentScreenshot && (
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block">Uploaded UPI Screenshot proof</span>
+                      <div className="flex items-center gap-2">
+                        <a 
+                          href={activeTrackOrder.paymentScreenshot} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="w-12 h-12 rounded-lg overflow-hidden border border-[#D4C19D]/20 block hover:opacity-80 transition-opacity shrink-0"
+                        >
+                          <img src={activeTrackOrder.paymentScreenshot} alt="Transaction confirmation screenshot" className="w-[#48px] h-[#48px] object-cover" />
+                        </a>
+                        <div>
+                          <p className="text-[10px] text-gray-600 font-semibold leading-tight">Payment Screenshot</p>
+                          <a 
+                            href={activeTrackOrder.paymentScreenshot} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-[9px] text-[#b89153] uppercase font-bold hover:underline mt-0.5 inline-block"
+                          >
+                            View Image &rarr;
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {activeTrackOrder.transactionRef && (
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block">UPI Transaction Reference / UTR ID</span>
+                      <div className="bg-[#FAF6F0] px-3 py-1.5 rounded-lg border border-[#D4C19D]/15 flex flex-col justify-center min-h-[48px]">
+                        <p className="text-xs font-mono font-bold text-gray-800 tracking-wider">
+                          {activeTrackOrder.transactionRef}
+                        </p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-tight font-semibold mt-0.5">
+                          Verified Reference
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Items in active tracked order overview listed */}
               <div className="space-y-2 pt-2 text-left">
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Products Included</span>

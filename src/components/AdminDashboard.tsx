@@ -1033,31 +1033,49 @@ export default function AdminDashboard({
                         ))}
                       </div>
 
-                      {/* Payment Proof Screenshot attachment link */}
-                      {o.paymentScreenshot && (
-                        <div className="bg-[#FAF6F0]/40 p-3 rounded-xl border border-[#D4C19D]/10 space-y-1 max-w-sm">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block">UPI Verified Receipt Screenshot</span>
-                          <div className="flex items-center gap-3">
-                            <a 
-                              href={o.paymentScreenshot} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              className="w-12 h-12 rounded-lg overflow-hidden border border-[#D4C19D]/20 block hover:opacity-80 transition-opacity"
-                            >
-                              <img src={o.paymentScreenshot} alt="Transaction confirmation screenshot" className="w-full h-full object-cover" />
-                            </a>
-                            <div>
-                              <p className="text-[10px] text-gray-600 font-semibold">Payment Screenshot Uploaded</p>
-                              <a 
-                                href={o.paymentScreenshot} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                className="text-[9px] text-[#b89153] uppercase font-bold hover:underline"
-                              >
-                                View full receipt image &rarr;
-                              </a>
+                       {/* Payment Proof Details and Transaction Identifier */}
+                      {(o.paymentScreenshot || o.transactionRef) && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl bg-[#FAF6F0]/40 p-3 rounded-xl border border-[#D4C19D]/10">
+                          {o.paymentScreenshot && (
+                            <div className="space-y-1">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block">UPI Verified Receipt Screenshot</span>
+                              <div className="flex items-center gap-2">
+                                <a 
+                                  href={o.paymentScreenshot} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="w-12 h-12 rounded-lg overflow-hidden border border-[#D4C19D]/20 block hover:opacity-80 transition-opacity shrink-0"
+                                >
+                                  <img src={o.paymentScreenshot} alt="Transaction confirmation screenshot" className="w-full h-full object-cover" />
+                                </a>
+                                <div>
+                                  <p className="text-[10px] text-gray-600 font-semibold leading-tight">Payment Screenshot</p>
+                                  <a 
+                                    href={o.paymentScreenshot} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-[9px] text-[#b89153] uppercase font-bold hover:underline mt-0.5 inline-block"
+                                  >
+                                    View full image &rarr;
+                                  </a>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          )}
+                          
+                          {o.transactionRef && (
+                            <div className="space-y-1">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block">UPI Transaction Reference / UTR ID</span>
+                              <div className="bg-white/80 px-3 py-1.5 rounded-lg border border-[#D4C19D]/15 flex flex-col justify-center min-h-[48px]">
+                                <p className="text-xs font-mono font-bold text-gray-800 tracking-wider select-all cursor-text" title="Click to select transaction ID">
+                                  {o.transactionRef}
+                                </p>
+                                <p className="text-[8px] text-gray-400 uppercase tracking-tight font-semibold mt-0.5">
+                                  User Provided Reference
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 

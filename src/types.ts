@@ -55,6 +55,7 @@ export interface Order {
   paymentMethod: string;
   paymentStatus: 'Paid' | 'Pending' | 'Failed';
   paymentScreenshot?: string;
+  transactionRef?: string;
   shippingStatus: 'Processing' | 'Dispatched' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
   trackingNumber: string;
   cancelReason?: string;

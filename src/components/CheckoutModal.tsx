@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CreditCard, ShoppingBag, ShieldCheck, CheckCircle2, QrCode, Truck, Landmark, Upload, Trash2, Image, Sparkles } from 'lucide-react';
+import { X, ShoppingBag, ShieldCheck, CheckCircle2, QrCode, Truck, Upload, Trash2, Image, Copy, Check } from 'lucide-react';
 import { CartItem, Order, User } from '../types';
 
 interface CheckoutModalProps {
@@ -44,12 +44,59 @@ export default function CheckoutModal({
     pincode: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'upi'>('upi');
-  
   // Drag and drop payment screenshot state
   const [paymentScreenshotVal, setPaymentScreenshotVal] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [transactionRef, setTransactionRef] = useState('');
+  const [copyStatus, setCopyStatus] = useState<{[key: string]: boolean}>({});
+
+  const handleCopyField = (fieldName: string, textToCopy: string) => {
+    navigator.clipboard.writeText(textToCopy);
+    setCopyStatus(prev => ({ ...prev, [fieldName]: true }));
+    setTimeout(() => {
+      setCopyStatus(prev => ({ ...prev, [fieldName]: false }));
+    }, 1500);
+  };
+
+
+
+  // Image compression and downscaling utility to prevent network timeouts & large payloads
+  const compressImage = (file: File, callback: (result: string) => void) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 800; // Optimal for Google Drive & Spreadsheet previewing
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Convert to highly compact JPEG (saves ~95% bandwidth compared to raw phone camera pictures)
+          const base64 = canvas.toDataURL('image/jpeg', 0.75);
+          callback(base64);
+        } else {
+          callback(event.target?.result as string);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,6 +119,7 @@ export default function CheckoutModal({
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!paymentScreenshotVal) {
       alert('Please upload a screenshot of your successful UPI payment first.');
       return;
@@ -112,6 +160,7 @@ export default function CheckoutModal({
         paymentMethod: 'UPI',
         paymentStatus: 'Paid',
         paymentScreenshot: paymentScreenshotVal ? paymentScreenshotVal : undefined,
+        transactionRef: transactionRef.trim() || 'NA',
         shippingStatus: 'Processing',
         trackingNumber: trackingNo,
       };
@@ -122,8 +171,8 @@ export default function CheckoutModal({
 
       const syncPayload = {
         // Screenshot payload
-        paymentScreenshot: paymentMethod === 'upi' ? (paymentScreenshotVal || '') : '',
-        transactionRef: paymentMethod === 'upi' ? (transactionRef.trim() || 'NA') : 'NA',
+        paymentScreenshot: paymentScreenshotVal,
+        transactionRef: transactionRef.trim() || 'NA',
         // First name & Last name combinations
         firstName: shippingForm.firstName,
         lastName: shippingForm.lastName,
@@ -185,51 +234,51 @@ export default function CheckoutModal({
         SelectedProduct: productDetailsCombined,
 
         // Payment Method variants - Covering intensive naming schemes, spaces, and case variants
-        paymentMethod: paymentMethod.toUpperCase(),
-        payment_method: paymentMethod.toUpperCase(),
-        PaymentMethod: paymentMethod.toUpperCase(),
-        payment: paymentMethod.toUpperCase(),
-        Payment: paymentMethod.toUpperCase(),
-        paymentmode: paymentMethod.toUpperCase(),
-        paymentMode: paymentMethod.toUpperCase(),
-        payment_mode: paymentMethod.toUpperCase(),
-        PaymentMode: paymentMethod.toUpperCase(),
-        method: paymentMethod.toUpperCase(),
-        Method: paymentMethod.toUpperCase(),
-        paymentmethod: paymentMethod.toUpperCase(),
-        "payment method": paymentMethod.toUpperCase(),
-        "Payment Method": paymentMethod.toUpperCase(),
-        "PAYMENT METHOD": paymentMethod.toUpperCase(),
-        "Payment_Method": paymentMethod.toUpperCase(),
-        "payment mode": paymentMethod.toUpperCase(),
-        "Payment Mode": paymentMethod.toUpperCase(),
-        "PAYMENT MODE": paymentMethod.toUpperCase(),
-        "payment type": paymentMethod.toUpperCase(),
-        "Payment Type": paymentMethod.toUpperCase(),
-        "PAYMENT TYPE": paymentMethod.toUpperCase(),
-        "paymentOption": paymentMethod.toUpperCase(),
-        "PaymentOption": paymentMethod.toUpperCase(),
-        "payment_option": paymentMethod.toUpperCase(),
-        "Payment Option": paymentMethod.toUpperCase(),
-        "payment option": paymentMethod.toUpperCase(),
-        "payMethod": paymentMethod.toUpperCase(),
-        "pay_method": paymentMethod.toUpperCase(),
-        "PayMethod": paymentMethod.toUpperCase(),
-        "mode": paymentMethod.toUpperCase(),
-        "Mode": paymentMethod.toUpperCase(),
-        "MODE": paymentMethod.toUpperCase(),
+        paymentMethod: 'UPI',
+        payment_method: 'UPI',
+        PaymentMethod: 'UPI',
+        payment: 'UPI',
+        Payment: 'UPI',
+        paymentmode: 'UPI',
+        paymentMode: 'UPI',
+        payment_mode: 'UPI',
+        PaymentMode: 'UPI',
+        method: 'UPI',
+        Method: 'UPI',
+        paymentmethod: 'UPI',
+        "payment method": 'UPI',
+        "Payment Method": 'UPI',
+        "PAYMENT METHOD": 'UPI',
+        "Payment_Method": 'UPI',
+        "payment mode": 'UPI',
+        "Payment Mode": 'UPI',
+        "PAYMENT MODE": 'UPI',
+        "payment type": 'UPI',
+        "Payment Type": 'UPI',
+        "PAYMENT TYPE": 'UPI',
+        "paymentOption": 'UPI',
+        "PaymentOption": 'UPI',
+        "payment_option": 'UPI',
+        "Payment Option": 'UPI',
+        "payment option": 'UPI',
+        "payMethod": 'UPI',
+        "pay_method": 'UPI',
+        "PayMethod": 'UPI',
+        "mode": 'UPI',
+        "Mode": 'UPI',
+        "MODE": 'UPI',
         
         // Alternative values using more natural spacing/case values in case of validation on Google Form/Sheet end
-        "paymentMethodTitle": paymentMethod === 'upi' ? 'UPI' : 'COD',
-        "paymentMethodFull": paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
-        "paymentMethodSimple": paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
-        "paymentMethodLower": paymentMethod,
+        "paymentMethodTitle": 'UPI',
+        "paymentMethodFull": 'UPI (Scanner)',
+        "paymentMethodSimple": 'UPI',
+        "paymentMethodLower": 'upi',
         
         // Directly maps space and lowercase variants to formatted values
-        "payment method simple": paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
-        "Payment Method Simple": paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
-        "Payment Method Text": paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
-        "payment method text": paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
+        "payment method simple": 'UPI',
+        "Payment Method Simple": 'UPI',
+        "Payment Method Text": 'UPI (Scanner)',
+        "payment method text": 'UPI (Scanner)',
 
         // Total Amount variants
         totalAmount: total,
@@ -244,7 +293,7 @@ export default function CheckoutModal({
       };
 
       // Send JSON payload directly to the specified Google Apps Script Web App URL
-      fetch('https://script.google.com/macros/s/AKfycbzSFQx2flQvTPRPUKf5xdXDqWOKkmh0eKfI7tKLZn2JCBxcw5h3clJbpawWGgsBKnlJ/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbzn-sINHollCHAsD0tWiEKK-y7U0lKSWeGJ1FxZXW7LtmQa-Ydap3Bdb9VlySvcoXSi/exec', {
         method: 'POST',
         mode: 'no-cors', // Bypasses CORS browser pre-flight checks specifically required for standalone Google Apps Script end points
         headers: {
@@ -419,25 +468,34 @@ export default function CheckoutModal({
           {/* STEP 2: SECURE PAYMENT MODAL */}
           {step === 2 && (
             <div className="md:col-span-7 p-6 space-y-5">
-              <h3 className="font-serif text-[#1E1C1A] text-base font-semibold uppercase tracking-wide">
-                Complete Safe Payment
-              </h3>
-
-              {/* Secure UPI Payment Only */}
-              <div className="flex bg-[#FAF6F0] p-3 rounded-xl border border-[#D4C19D]/20 text-xs gap-2 items-center text-[#1E1C1A]">
-                <ShieldCheck className="h-4.5 w-4.5 text-[#b89153] flex-shrink-0" />
-                <span className="font-semibold uppercase tracking-wider text-[11px]">Secure Online Payment via UPI</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#D4C19D]/15">
+                <h3 className="font-serif text-[#1E1C1A] text-base font-semibold uppercase tracking-wide">
+                  Secure UPI Transfer Portal
+                </h3>
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-500/10 rounded-full text-[10px] font-mono font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  UPI ENCRYPTED SECURE CHANNEL
+                </div>
               </div>
 
-              {/* Payment Details forms */}
+              {/* Secure Payments Instructions */}
+              <div className="bg-[#FAF6F0] p-4.5 rounded-2xl border border-[#D4C19D]/15 space-y-2 text-xs">
+                <p className="text-gray-600 leading-relaxed">
+                  Please scan the official QR code below or transfer exactly <strong className="text-gray-900 font-bold">₹{total.toLocaleString('en-IN')}</strong> to the merchant account. Once paid, capture a screenshot and upload it as payment proof to clear dispatch.
+                </p>
+              </div>
+
+              {/* Payment Details form */}
               <form onSubmit={handlePaymentSubmit} className="space-y-4">
                 <div className="space-y-4 animate-fade-up">
+                  
+                  {/* UPI PAYMENTS */}
+                  <div className="space-y-4">
                     {/* Exquisite QR Code Card mirroring user representation */}
                     <div className="bg-[#FAF6F0] p-6 rounded-3xl border border-[#D4C19D]/20 flex flex-col items-center w-full shadow-xs text-center">
-                      
                       {/* Avatar and Name */}
                       <div className="flex items-center gap-2 mb-4 bg-white/60 px-4 py-2 rounded-2xl border border-[#D4C19D]/10">
-                        <div className="w-8 h-8 rounded-full border-2 border-white shadow-xs overflow-hidden bg-[#FAF6F0] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full border-2 border-white shadow-xs overflow-hidden bg-[#FAF6F0] flex items-center justify-center align-middle">
                           <span className="font-serif text-[10px] font-bold text-gray-700">AR</span>
                         </div>
                         <span className="font-sans font-bold text-[#1E1C1A] text-xs tracking-wide">Akanksha R</span>
@@ -452,7 +510,7 @@ export default function CheckoutModal({
                             className="w-full h-full object-contain"
                           />
                           {/* GPay multicolored loop-themed center overlay */}
-                          <div className="absolute w-9 h-9 bg-white rounded-full p-1 border shadow-xs flex items-center justify-center">
+                          <div className="absolute w-9 h-9 bg-white rounded-full p-1 border shadow-xs flex items-center justify-center align-middle">
                             <span className="text-[9px] font-serif font-black flex flex-col items-center leading-none">
                               <span className="text-blue-600 font-extrabold">G</span>
                               <span className="text-red-500 font-bold text-[8px] -mt-1">Pay</span>
@@ -461,10 +519,18 @@ export default function CheckoutModal({
                         </div>
 
                         {/* UPI ID block */}
-                        <div className="w-full border-t border-gray-100 pt-3 mt-2">
-                          <p className="text-[10px] font-semibold text-gray-700 font-mono tracking-tight block">
-                            UPI ID: akanksharakshe13-1@okicici
+                        <div className="w-full border-t border-gray-100 pt-3 mt-2 flex justify-between items-center text-left">
+                          <p className="text-[10px] font-semibold text-gray-750 font-mono tracking-tight block">
+                            akanksharakshe13-1@okicici
                           </p>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyField('upi_id', 'akanksharakshe13-1@okicici')}
+                            className="p-1 hover:bg-[#FAF6F0] rounded text-[#b89153] transition-colors"
+                            title="Copy UPI string"
+                          >
+                            {copyStatus['upi_id'] ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          </button>
                         </div>
                       </div>
 
@@ -477,7 +543,7 @@ export default function CheckoutModal({
                     {/* Integrated Drag & Drop Payment Screenshot Area */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold tracking-wider uppercase text-gray-600 block">
-                        Upload Payment Screenshot * <span className="text-red-500 font-normal normal-case italic">(required)</span>
+                        Upload Payment Screenshot * <span className="text-red-500 font-normal normal-case italic">(required for verification)</span>
                       </label>
                       
                       <div
@@ -492,9 +558,9 @@ export default function CheckoutModal({
                               alert('Please upload an image file (PNG, JPG, JPEG) for the payment proof.');
                               return;
                             }
-                            const r = new FileReader();
-                            r.onload = () => setPaymentScreenshotVal(r.result as string);
-                            r.readAsDataURL(file);
+                            compressImage(file, (base64) => {
+                              setPaymentScreenshotVal(base64);
+                            });
                           }
                         }}
                         onClick={() => document.getElementById('screenshot-picker')?.click()}
@@ -518,9 +584,9 @@ export default function CheckoutModal({
                                 alert('Please upload an image file (PNG, JPG, JPEG) for the payment proof.');
                                 return;
                               }
-                              const r = new FileReader();
-                              r.onload = () => setPaymentScreenshotVal(r.result as string);
-                              r.readAsDataURL(file);
+                              compressImage(file, (base64) => {
+                                setPaymentScreenshotVal(base64);
+                              });
                             }
                           }}
                         />
@@ -583,24 +649,26 @@ export default function CheckoutModal({
                     </div>
                   </div>
 
-                <div className="flex gap-2 pt-2">
+                </div>
+
+                <div className="flex gap-2 pt-2 select-none">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="px-4 py-3 bg-transparent border border-[#1E1C1A]/20 text-[#1E1C1A]/70 text-xs font-semibold rounded-xl uppercase tracking-wider"
+                    className="px-4 py-3 bg-transparent border border-[#1E1C1A]/20 text-[#1E1C1A]/70 text-xs font-semibold rounded-xl uppercase tracking-wider transition-colors hover:bg-black/5 cursor-pointer"
                     disabled={isProcessing}
                   >
                     Back
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-white text-xs font-semibold rounded-xl uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    className="flex-1 py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-[#FAF6F0] text-xs font-semibold rounded-xl uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-md"
                     disabled={isProcessing}
                   >
                     {isProcessing ? (
                       <span className="flex items-center gap-1.5">
                         <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                        Finishing SECURE payment processing...
+                        Verifying payment ledger registration...
                       </span>
                     ) : (
                       <span>Complete Payment ₹{total.toLocaleString('en-IN')}</span>

@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-gold-50: #fcfaf7;
+  --color-gold-100: #f7f1e6;
+  --color-gold-200: #eadbbf;
+  --color-gold-300: #dac195;
+  --color-gold-400: #c9a46a;
+  --color-gold-500: #b89153; /* Premium luxury warm gold */
+  --color-gold-600: #9e7a40;
+  --color-gold-700: #816232;
+  --color-gold-800: #654c27;
+  --color-gold-900: #4a371c;
+
+  --color-luxury-beige: #FAF6F0; /* Soft luxury warm beige background */
+  --color-luxury-cream: #FAFBF9;
+  --color-luxury-charcoal: #1E1C1A; /* Luxe almost-black text */
+  --color-luxury-rose: #EEDAD2; /* Beautiful pastel blush */
+
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Outfit", "Inter", sans-serif;
+  --font-mono: "Fira Code", monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-luxury-beige);
+    color: var(--color-luxury-charcoal);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  /* Custom Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FAF6F0;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D4C4B3;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b89153;
+  }
+}
+
+/* Custom fade up effect for luxury load */
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  15% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

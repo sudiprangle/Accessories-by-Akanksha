@@ -1,0 +1,6 @@
+{
+  "name": "Accessories by Akanksha",
+  "description": "Premium luxury anti-tarnish and waterproof tennis jewellery e-commerce boutique.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

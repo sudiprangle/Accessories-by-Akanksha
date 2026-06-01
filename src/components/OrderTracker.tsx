@@ -60,28 +60,28 @@ export default function OrderTracker({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-[#FAF6F0] rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 gap-0 animate-fade-up">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-4xl bg-[#FAF6F0] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 gap-0 animate-fade-up md:h-[85vh] max-h-[95vh] md:max-h-none">
         {/* Tracker Header Bar */}
-        <div className="col-span-12 bg-[#1E1C1A] text-white px-6 py-5 flex justify-between items-center">
+        <div className="col-span-12 bg-[#1E1C1A] text-white px-5 sm:px-6 py-4 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <Truck className="h-5 w-5 text-[#b89153]" />
-            <span className="font-serif tracking-widest text-sm uppercase">Live Courier Transit tracker</span>
+            <span className="font-serif tracking-widest text-xs sm:text-sm uppercase">Live Courier Transit tracker</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-white/60 hover:text-white transition-colors"
+            className="p-1 px-1.5 rounded-full text-white/60 hover:text-white transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Left column: search and previous orders list */}
-        <div className="md:col-span-4 bg-white p-5 border-r border-[#D4C19D]/15 flex flex-col justify-between max-h-[80vh]">
-          <div className="space-y-5">
+        <div className="md:col-span-4 bg-white p-4 sm:p-5 border-b md:border-b-0 md:border-r border-[#D4C19D]/15 flex flex-col gap-4 md:justify-between md:h-[calc(85vh-56px)] overflow-y-auto max-h-[35vh] md:max-h-none shrink-0 text-left">
+          <div className="space-y-4">
             {/* Search Input bar */}
-            <form onSubmit={handleTrackSearch} className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Query order details</label>
+            <form onSubmit={handleTrackSearch} className="space-y-1.5">
+              <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Query order details</label>
               <div className="relative">
                 <input
                   type="text"
@@ -92,13 +92,13 @@ export default function OrderTracker({
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 top-2 p-1.5 rounded-lg bg-[#1E1C1A] hover:bg-[#b89153] text-white transition-colors cursor-pointer"
+                  className="absolute right-1.5 top-1.5 p-1 rounded-lg bg-[#1E1C1A] hover:bg-[#b89153] text-white transition-colors cursor-pointer"
                 >
                   <Search className="h-3.5 w-3.5" />
                 </button>
               </div>
               {errorSearch && (
-                <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
+                <p className="text-[10px] text-red-500 font-medium flex items-center gap-1 mt-1">
                   <ShieldAlert className="h-3 w-3" />
                   <span>{errorSearch}</span>
                 </p>
@@ -106,12 +106,12 @@ export default function OrderTracker({
             </form>
 
             {/* List of orders if available */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block border-b border-[#D4C19D]/10 pb-1">Your Past Transactions</span>
               {orders.length === 0 ? (
-                <p className="text-[11px] text-gray-500 italic">No order histories logged inside this browser session.</p>
+                <p className="text-[10px] text-gray-400 italic font-light">No order histories logged inside this browser session.</p>
               ) : (
-                <div className="space-y-2 max-h-[220px] overflow-y-auto">
+                <div className="space-y-1.5 max-h-[120px] md:max-h-[220px] overflow-y-auto pr-1">
                   {orders.map((o) => (
                     <div
                       key={o.id}
@@ -119,7 +119,7 @@ export default function OrderTracker({
                         setActiveTrackOrder(o);
                         setErrorSearch('');
                       }}
-                      className={`p-3 rounded-xl border text-left cursor-pointer transition-colors ${
+                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-colors ${
                         activeTrackOrder?.id === o.id
                           ? 'border-[#b89153] bg-[#b89153]/5'
                           : 'border-[#D4C19D]/15 hover:border-gray-400 bg-[#FAF6F0]/40'
@@ -129,7 +129,7 @@ export default function OrderTracker({
                         <span className="font-mono text-xs font-bold text-gray-800">{o.id}</span>
                         <span className="text-[9px] text-[#b89153] font-semibold uppercase">{o.shippingStatus}</span>
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-1 flex justify-between">
+                      <div className="text-[10px] text-gray-500 mt-0.5 flex justify-between">
                         <span>{o.date}</span>
                         <span>₹{o.total.toLocaleString('en-IN')}</span>
                       </div>
@@ -140,22 +140,22 @@ export default function OrderTracker({
             </div>
           </div>
 
-          {/* Quick instructions guide */}
+          {/* Quick assistance guide */}
           <div className="p-3 bg-yellow-50/50 rounded-xl border border-yellow-200/50 flex gap-2 text-[10px] text-gray-600 leading-normal font-light">
             <HelpCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-gray-800">Need shipment assistance?</p>
-              <p className="mt-0.5">Please WhatsApp us with screenshot references at +91 93245 XXXXX for speed clarifications.</p>
+              <p className="mt-0.5 text-[9px]">WhatsApp screenshot references: +91 93245 XXXXX</p>
             </div>
           </div>
         </div>
 
         {/* Right column: timeline graphic and courier route simulator */}
-        <div className="md:col-span-8 p-6 sm:p-8 overflow-y-auto max-h-[80vh] space-y-6">
+        <div className="md:col-span-8 p-4 sm:p-6 md:p-8 overflow-y-auto md:h-[calc(85vh-56px)] space-y-5 flex-1 bg-[#FAF6F0]">
           {activeTrackOrder ? (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Header card summary details */}
-              <div className="p-4 bg-white border border-[#D4C19D]/15 rounded-2xl flex flex-col sm:flex-row justify-between gap-4">
+              <div className="p-4 bg-white border border-[#D4C19D]/15 rounded-2xl flex flex-col sm:flex-row justify-between gap-4 text-left">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Dispatch Target</p>
                   <h4 className="font-serif text-gray-800 font-bold text-sm sm:text-base mt-0.5">
@@ -171,13 +171,13 @@ export default function OrderTracker({
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Shipment Tracking Code</p>
                   <p className="font-mono text-xs font-bold text-[#b89153] mt-0.5">{activeTrackOrder.trackingNumber}</p>
                   <span className="mt-1.5 inline-block text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded border border-emerald-100">
-                    {activeTrackOrder.paymentStatus === 'Paid' ? '💳 Prepaid Transaction' : '📦 Cash on Delivery (COD)'}
+                    {activeTrackOrder.paymentStatus === 'Paid' ? 'Prepaid Transaction' : 'Cash on Delivery (COD)'}
                   </span>
                 </div>
               </div>
 
               {/* Transit milestones timeline graphic vertical */}
-              <div className="relative pl-6 space-y-6">
+              <div className="relative pl-6 space-y-5">
                 {/* Connecting track line */}
                 <div className="absolute left-2.5 top-0 bottom-4 w-[1.5px] bg-[#D4C19D]/20" />
 
@@ -203,7 +203,7 @@ export default function OrderTracker({
                           </h5>
                           <span className="text-[10px] font-mono text-gray-400 font-medium">{st.time}</span>
                         </div>
-                        <p className={`text-[11px] font-light mt-0.5 ${isCompleted ? 'text-gray-650' : 'text-gray-400'}`}>{st.desc}</p>
+                        <p className={`text-[11px] font-light mt-0.5 ${isCompleted ? 'text-gray-600' : 'text-gray-400'}`}>{st.desc}</p>
                       </div>
                     </div>
                   );
@@ -211,7 +211,7 @@ export default function OrderTracker({
               </div>
 
               {/* Interactive Courier Simulated map tracker graphic */}
-              <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-100 border border-[#D4C19D]/15 flex items-center justify-center p-4">
+              <div className="relative h-32 sm:h-40 rounded-2xl overflow-hidden bg-slate-100 border border-[#D4C19D]/15 flex items-center justify-center p-4">
                 {/* Visual map outline sketch */}
                 <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#808080_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
                 
@@ -222,43 +222,43 @@ export default function OrderTracker({
                 </svg>
 
                 {/* Tracking nodes */}
-                <div className="absolute left-1/10 top-1/4 flex flex-col items-center">
+                <div className="absolute left-[10%] top-[25%] flex flex-col items-center">
                   <div className="h-4 w-4 bg-[#1E1C1A] text-white rounded-full flex items-center justify-center shadow-md">
                     <span className="text-[8px] font-bold">A</span>
                   </div>
-                  <span className="text-[9px] text-[#1E1C1A] font-medium bg-white px-1.5 py-0.5 rounded shadow-xs mt-1">Origin Hub</span>
+                  <span className="text-[8px] text-[#1E1C1A] font-medium bg-white px-1.5 py-0.5 rounded shadow-xs mt-1">Origin Hub</span>
                 </div>
 
-                <div className="absolute right-1/10 bottom-1/5 flex flex-col items-center">
+                <div className="absolute right-[10%] bottom-[20%] flex flex-col items-center">
                   <div className="h-4 w-4 bg-[#b89153] text-[#FAF6F0] rounded-full flex items-center justify-center animate-bounce shadow-md">
                     <MapPin className="h-2.5 w-2.5" />
                   </div>
-                  <span className="text-[9px] text-gray-800 font-bold bg-white px-1.5 py-0.5 rounded shadow-xs mt-1">Akanksha Client Address</span>
+                  <span className="text-[8px] text-gray-800 font-bold bg-white px-1.5 py-0.5 rounded shadow-xs mt-1">Delivery Destination</span>
                 </div>
 
                 {/* Animated shipping van moving */}
                 <div 
-                  className={`absolute flex flex-col items-center transition-all duration-[6s] ease-in-out`}
+                  className="absolute flex flex-col items-center transition-all duration-[6s] ease-in-out"
                   style={{
-                    left: `${activeStepIdx * 22}%`,
-                    top: `${40 + (activeStepIdx % 2) * 20}%`,
+                    left: `${15 + (activeStepIdx - 1) * 20}%`,
+                    top: `${40 + (activeStepIdx % 2) * 15}%`,
                   }}
                 >
-                  <div className="p-2 bg-[#b89153] text-white rounded-full shadow-lg relative animate-pulse">
-                    <Truck className="h-4 w-4" />
+                  <div className="p-1.5 bg-[#b89153] text-white rounded-full shadow-lg relative animate-pulse">
+                    <Truck className="h-3.5 w-3.5" />
                     <span className="absolute -top-1 -right-1 flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                   </div>
                   <span className="text-[8px] font-bold uppercase tracking-wider text-[#b89153] bg-white border border-[#D4C19D]/15 px-1.5 py-0.5 rounded-full mt-1 shrink-0">
-                    Courier Moving
+                    In Transit
                   </span>
                 </div>
 
-                <div className="absolute bottom-2 left-2 bg-[#1E1C1A]/85 text-white text-[9px] px-2 py-1 rounded-md flex items-center gap-1 backdrop-blur-xs">
+                <div className="absolute bottom-2 left-2 bg-[#1E1C1A]/85 text-white text-[8px] px-2 py-1 rounded flex items-center gap-1 backdrop-blur-xs">
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                  <span>Interactive blue-dot courier telemetry active</span>
+                  <span>Telemetry Live</span>
                 </div>
               </div>
 
@@ -267,13 +267,13 @@ export default function OrderTracker({
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Products Included</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {activeTrackOrder.items.map((it, idx) => (
-                    <div key={`${it.productId}-${idx}`} className="flex gap-2.5 items-center p-2.5 bg-white border border-[#D4C19D]/10 rounded-xl">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden border bg-[#FAF6F0] shrink-0">
+                    <div key={`${it.productId}-${idx}`} className="flex gap-2.5 items-center p-2 bg-white border border-[#D4C19D]/10 rounded-xl">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden border bg-[#FAF6F0] shrink-0">
                         <img src={it.image} alt={it.productName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-gray-800 truncate">{it.productName}</p>
-                        <p className="text-[10px] text-gray-500">Qty: {it.quantity} | Plating: {it.color || 'Gold'}</p>
+                        <p className="text-[9px] text-gray-500">Qty: {it.quantity} | {it.color || 'Gold'}</p>
                       </div>
                     </div>
                   ))}
@@ -281,13 +281,13 @@ export default function OrderTracker({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center h-80 space-y-3">
-              <div className="h-14 w-14 rounded-full bg-[#1E1C1A]/5 flex items-center justify-center text-gray-300">
+            <div className="flex flex-col items-center justify-center text-center h-64 space-y-3 bg-[#FAF6F0]">
+              <div className="h-12 w-12 rounded-full bg-[#1E1C1A]/5 flex items-center justify-center text-gray-300">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-serif text-[#1E1C1A] font-semibold text-base">Select or Enter an Order above</p>
-                <p className="text-xs text-gray-500 max-w-sm mt-1 mx-auto leading-relaxed">
+                <p className="font-serif text-[#1E1C1A] font-semibold text-sm">Select or Enter an Order</p>
+                <p className="text-[11px] text-gray-400 max-w-xs mt-1 mx-auto leading-relaxed font-light">
                   Provide an Order reference, shipping address email, or dispatch number on the left panel to display deep delivery progression.
                 </p>
               </div>

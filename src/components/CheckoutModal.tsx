@@ -123,7 +123,7 @@ export default function CheckoutModal({
       const syncPayload = {
         // Screenshot payload
         paymentScreenshot: paymentMethod === 'upi' ? (paymentScreenshotVal || '') : '',
-        transactionRef: paymentMethod === 'upi' ? transactionRef : '',
+        transactionRef: paymentMethod === 'upi' ? (transactionRef.trim() || 'NA') : 'NA',
         // First name & Last name combinations
         firstName: shippingForm.firstName,
         lastName: shippingForm.lastName,

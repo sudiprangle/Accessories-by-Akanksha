@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Heart, ShoppingBag, User, Settings, Compass, HelpCircle, LogOut, Menu, X, ArrowUpRight } from 'lucide-react';
+import { Search, Heart, ShoppingBag, User, Settings, Compass, HelpCircle, LogOut, Menu, X, ArrowUpRight, Package, Truck, Lock } from 'lucide-react';
 import { User as UserType } from '../types';
 
 interface NavbarProps {
@@ -12,7 +12,7 @@ interface NavbarProps {
   onOpenWishlist: () => void;
   onOpenAuth: () => void;
   onOpenOrderTracker: () => void;
-  onOpenAdmin: () => void;
+  onOpenAdmin: (viewMode: 'console' | 'dashboard' | 'account') => void;
   onLogout: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -171,75 +171,111 @@ export default function Navbar({
 
               {showUserDropdown && (
                 <div 
-                  className="absolute right-0 mt-3 w-56 bg-white border border-[#D4C19D]/10 rounded-2xl shadow-xl overflow-hidden py-1 z-50 animate-fade-up"
+                  className="absolute right-0 mt-3 w-56 bg-white border border-[#D4C19D]/20 rounded-2xl shadow-xl overflow-hidden py-1 z-50 animate-fade-up"
                   style={{ animationDuration: '0.2s' }}
                 >
                   {currentUser ? (
                     <>
-                      <div className="px-4 py-3 bg-[#FAF6F0] border-b border-[#D4C19D]/10">
-                        <p className="text-xs text-gray-500">Logged in as</p>
-                        <p className="text-sm font-semibold text-[#1E1C1A] truncate">{currentUser.name}</p>
+                      <div className="px-4 py-3 bg-[#FAF6F0] border-b border-[#D4C19D]/15">
+                        <p className="text-[10px] text-gray-500 uppercase font-semibold">Logged in as</p>
+                        <p className="text-xs font-semibold text-[#1E1C1A] truncate mt-0.5">{currentUser.name}</p>
                         {currentUser.isAdmin && (
-                          <span className="mt-1 inline-block bg-yellow-100 text-yellow-800 text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded">
+                          <span className="mt-1 inline-block bg-amber-100 text-amber-800 text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded">
                             Store Owner / Admin
                           </span>
                         )}
                       </div>
+                      
                       <button
                         onClick={() => {
                           onOpenOrderTracker();
                           setShowUserDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors flex items-center justify-between"
+                        className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors flex items-center justify-between border-b border-[#D4C19D]/10"
                       >
-                        <span>My Orders & Live Tracking</span>
-                        <ArrowUpRight className="h-3 w-3" />
+                        <span className="font-medium text-gray-800">My Orders & Live Tracking</span>
+                        <ArrowUpRight className="h-3.5 w-3.5 text-[#b89153]" />
                       </button>
+
                       {currentUser.isAdmin && (
-                        <button
-                          onClick={() => {
-                            onOpenAdmin();
-                            setShowUserDropdown(false);
-                          }}
-                          className="w-full text-left px-4 py-2 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-amber-700 font-medium transition-colors flex items-center justify-between"
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <Settings className="h-3.5 w-3.5 text-amber-600" />
-                            Admin Console
-                          </span>
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              onOpenAdmin('console');
+                              setShowUserDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors flex items-center justify-between border-b border-[#D4C19D]/10 text-amber-900"
+                          >
+                            <span className="flex items-center gap-1.5 font-semibold">
+                              <Settings className="h-3.5 w-3.5 text-amber-600" />
+                              Admin Console
+                            </span>
+                            <ArrowUpRight className="h-3 w-3 text-gray-300" />
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              onOpenAdmin('dashboard');
+                              setShowUserDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors flex items-center justify-between border-b border-[#D4C19D]/10 text-amber-900 font-medium"
+                          >
+                            <span className="flex items-center gap-1.5 font-semibold">
+                              <Compass className="h-3.5 w-3.5 text-amber-600" />
+                              Sales & Orders Dashboard
+                            </span>
+                            <ArrowUpRight className="h-3 w-3 text-gray-300" />
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              onOpenAdmin('account');
+                              setShowUserDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors flex items-center justify-between border-b border-[#D4C19D]/10 text-amber-900"
+                          >
+                            <span className="flex items-center gap-1.5 font-semibold">
+                              <Lock className="h-3.5 w-3.5 text-amber-600" />
+                              Admin Account Settings
+                            </span>
+                            <ArrowUpRight className="h-3 w-3 text-gray-300" />
+                          </button>
+                        </>
                       )}
+
                       <button
                         onClick={() => {
                           onLogout();
                           setShowUserDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-rose-50 transition-colors flex items-center gap-1.5 border-t border-[#D4C19D]/10"
+                        className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-rose-50 transition-colors flex items-center gap-2"
                       >
-                        <LogOut className="h-3.5 w-3.5" />
-                        <span>Sign Out</span>
+                        <LogOut className="h-4 w-4 text-red-500" />
+                        <span className="font-medium">Sign Out</span>
                       </button>
                     </>
                   ) : (
                     <>
-                      <div className="px-4 py-3 bg-[#FAF6F0] border-b border-[#D4C19D]/10">
-                        <p className="text-xs text-[#1E1C1A]/60">Welcome to Akanksha Jewellery</p>
+                      <div className="px-4 py-3 bg-[#FAF6F0] border-b border-[#D4C19D]/15">
+                        <p className="text-[10px] text-gray-500 uppercase font-semibold">Welcome to Akanksha Jewellery</p>
                       </div>
+
                       <button
                         onClick={() => {
                           onOpenAuth();
                           setShowUserDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors font-medium"
+                        className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors font-medium border-b border-[#D4C19D]/10"
                       >
                         Secure Login / Sign Up
                       </button>
+
                       <button
                         onClick={() => {
                           onOpenOrderTracker();
                           setShowUserDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors"
                       >
                         Anonymous Guest Order Tracking
                       </button>

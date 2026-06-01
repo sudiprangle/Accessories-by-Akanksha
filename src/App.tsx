@@ -93,6 +93,7 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [orderTrackOpen, setOrderTrackOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [adminViewMode, setAdminViewMode] = useState<'console' | 'dashboard' | 'account'>('console');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // --- CHECKOUT SUB-STATES ---
@@ -366,7 +367,10 @@ export default function App() {
           setTrackImmediateId('');
           setOrderTrackOpen(true);
         }}
-        onOpenAdmin={() => setAdminOpen(true)}
+        onOpenAdmin={(mode) => {
+          setAdminViewMode(mode);
+          setAdminOpen(true);
+        }}
         onLogout={handleLogout}
         searchQuery={searchQuery}
         onSearchChange={(q) => {
@@ -595,8 +599,8 @@ export default function App() {
                 <MessageSquare className="h-4 w-4 text-[#b89153] mt-0.5 shrink-0" />
                 <span>Email: akanksharakshe13@gmail.com</span>
               </div>
-              <p className="text-[10px] text-gray-400 italic">
-                Office: Sector-11, Kopar Khairane, Navi Mumbai, Maharashtra, 400709
+              <p className="text-[10px] text-gray-400 italic mt-1 pb-1">
+                Office: At. Post Sadvali Devrukh Tal- Sangmeshwar Dist- Ratnagiri 415804
               </p>
             </div>
           </div>
@@ -686,6 +690,7 @@ export default function App() {
       {/* G. STORE OWNER ADMIN INSTRUMENTS CONTROL MODULE */}
       {adminOpen && (
         <AdminDashboard
+          viewMode={adminViewMode}
           products={products}
           orders={orders}
           onClose={() => setAdminOpen(false)}

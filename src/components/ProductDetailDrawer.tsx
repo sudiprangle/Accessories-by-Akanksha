@@ -298,7 +298,7 @@ export default function ProductDetailDrawer({
               <h4 className="font-serif text-[#1E1C1A] text-sm font-semibold uppercase tracking-wider">
                 Complementary Pieces
               </h4>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {related.map((item) => (
                   <div
                     key={item.id}

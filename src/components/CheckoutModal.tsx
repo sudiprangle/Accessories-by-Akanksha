@@ -307,7 +307,7 @@ export default function CheckoutModal({
                 Shipping Address Details
               </h3>
               
-              <div className="grid grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600 block">First Name *</label>
                   <input
@@ -355,7 +355,7 @@ export default function CheckoutModal({
                   />
                 </div>
 
-                <div className="col-span-2 space-y-1">
+                <div className="sm:col-span-2 space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600 block">Street/Suite Address *</label>
                   <textarea
                     required
@@ -391,7 +391,7 @@ export default function CheckoutModal({
                   />
                 </div>
 
-                <div className="col-span-2 space-y-1">
+                <div className="sm:col-span-2 space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-gray-600 block">Pincode *</label>
                   <input
                     type="text"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, Edit2, Archive, DollarSign, Users, ShoppingCart, ListCollapse, Play, Check, ShieldAlert, Truck, Droplets, Sparkles, Layers, Lock, Compass } from 'lucide-react';
+import { X, Plus, Trash2, Edit2, Archive, DollarSign, Users, ShoppingCart, ListCollapse, Play, Check, ShieldAlert, Truck, Droplets, Sparkles, Layers, Lock, Compass, UploadCloud } from 'lucide-react';
 import { Product, Order } from '../types';
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 
@@ -51,6 +51,47 @@ export default function AdminDashboard({
   const [newCatName, setNewCatName] = useState('');
   const [newCatImg, setNewCatImg] = useState('');
   const [catDeleteWarningId, setCatDeleteWarningId] = useState<string | null>(null);
+  const [catDragActive, setCatDragActive] = useState(false);
+
+  const handleCatDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setCatDragActive(true);
+    } else if (e.type === "dragleave") {
+      setCatDragActive(false);
+    }
+  };
+
+  const handleCatDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCatDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setNewCatImg(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCatFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setNewCatImg(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Delivery settings local inputs
   const [inputCharge, setInputCharge] = useState(String(deliveryCharge));
@@ -119,7 +160,7 @@ export default function AdminDashboard({
     isAntiTarnish: true,
     badge: 'Waterproof & Anti-Tarnish',
     description: '',
-    material: '18K Gold Plated Brass, Genuine AAA+ Clear Crystals',
+    material: 'Premium Anti-Tarnish Finish & Splash Resistant',
     stockCount: '35',
     image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=600&q=80',
   });
@@ -198,7 +239,7 @@ export default function AdminDashboard({
       isAntiTarnish: true,
       badge: 'Waterproof & Anti-Tarnish',
       description: '',
-      material: '18K Gold Plated Brass, Genuine AAA+ Clear Crystals',
+      material: 'Premium Anti-Tarnish Finish & Splash Resistant',
       stockCount: '35',
       image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=600&q=80',
     });
@@ -669,7 +710,7 @@ export default function AdminDashboard({
                       value={newProd.name}
                       onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
                       className="w-full bg-[#FAF6F0] border border-[#D4C19D]/20 rounded-xl px-3 py-2 text-xs focus:outline-none"
-                      placeholder="e.g., Deluxe Tennis Ankle Chain"
+                      placeholder="e.g., Deluxe Sterling Ankle Chain"
                     />
                   </div>
 
@@ -720,7 +761,7 @@ export default function AdminDashboard({
                         className="h-4 w-4 text-[#b89153] focus:ring-0 rounded cursor-pointer"
                       />
                       <label htmlFor="is-tennis-check" className="text-[10px] font-bold text-gray-700 uppercase ml-1.5 block cursor-pointer">
-                        Is Tennis Elite?
+                        Highlight as Premium?
                       </label>
                     </div>
 
@@ -769,7 +810,7 @@ export default function AdminDashboard({
                       value={newProd.material}
                       onChange={(e) => setNewProd({ ...newProd, material: e.target.value })}
                       className="w-full bg-[#FAF6F0] border border-[#D4C19D]/20 rounded-xl px-3 py-2 text-xs focus:outline-none"
-                      placeholder="e.g., 18K Gold Plated Brass, Genuine AAA+ Clear Crystals"
+                      placeholder="e.g., Anti-Tarnish Premium Coating, Splash Resistant Treatment"
                     />
                   </div>
 
@@ -858,7 +899,7 @@ export default function AdminDashboard({
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-gray-800 truncate leading-tight">{p.name}</p>
-                        <p className="text-[10px] text-gray-400 capitalize mt-0.5">{p.category} | {p.material.substring(0, 30)}...</p>
+                        <p className="text-[10px] text-gray-400 capitalize mt-0.5">{p.category}</p>
                         <div className="flex gap-3 pt-1 text-[11px] font-bold text-gray-700">
                           <span className="text-[#b89153]">₹{p.price}</span>
                           <span className="font-medium text-gray-400">Stock count:</span>
@@ -876,7 +917,16 @@ export default function AdminDashboard({
                         >
                           -
                         </button>
-                        <span className="px-1.5 text-xs font-bold text-gray-650">{p.stockCount}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={p.stockCount}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            onUpdateInventory(p.id, isNaN(val) || val < 0 ? 0 : val);
+                          }}
+                          className="w-10 text-center text-xs font-bold text-gray-700 bg-transparent border-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                         <button
                           onClick={() => onUpdateInventory(p.id, p.stockCount + 1)}
                           className="px-2 py-1 hover:text-[#b89153] text-xs font-bold"
@@ -982,6 +1032,44 @@ export default function AdminDashboard({
                           </div>
                         ))}
                       </div>
+
+                      {/* Payment Proof Screenshot attachment link */}
+                      {o.paymentScreenshot && (
+                        <div className="bg-[#FAF6F0]/40 p-3 rounded-xl border border-[#D4C19D]/10 space-y-1 max-w-sm">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block">UPI Verified Receipt Screenshot</span>
+                          <div className="flex items-center gap-3">
+                            <a 
+                              href={o.paymentScreenshot} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="w-12 h-12 rounded-lg overflow-hidden border border-[#D4C19D]/20 block hover:opacity-80 transition-opacity"
+                            >
+                              <img src={o.paymentScreenshot} alt="Transaction confirmation screenshot" className="w-full h-full object-cover" />
+                            </a>
+                            <div>
+                              <p className="text-[10px] text-gray-600 font-semibold">Payment Screenshot Uploaded</p>
+                              <a 
+                                href={o.paymentScreenshot} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="text-[9px] text-[#b89153] uppercase font-bold hover:underline"
+                              >
+                                View full receipt image &rarr;
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Customer logged cancellation reason displays to Administrator */}
+                      {o.shippingStatus === 'Cancelled' && o.cancelReason && (
+                        <div className="p-3 bg-rose-50 border border-rose-100/70 rounded-xl text-left space-y-1 max-w-md animate-fade-in">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-rose-800 block">Logged Cancellation Reason</span>
+                          <p className="text-xs text-rose-955 italic font-medium leading-relaxed">
+                            "{o.cancelReason}"
+                          </p>
+                        </div>
+                      )}
 
                       {/* ADJUST SHIPPING STATUS TIMELINE */}
                       <div className="p-3 bg-[#FAF6F0] rounded-xl border border-[#D4C19D]/15 flex items-center justify-between flex-wrap gap-3">
@@ -1124,16 +1212,70 @@ export default function AdminDashboard({
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Image URL (Optional)</label>
-                      <input
-                        type="text"
-                        value={newCatImg}
-                        onChange={(e) => setNewCatImg(e.target.value)}
-                        placeholder="e.g., Unsplash jewelry photo URL"
-                        className="w-full bg-[#FAF6F0] border border-[#D4C19D]/20 rounded-xl px-3 py-2 text-xs focus:outline-none"
-                      />
-                      <p className="text-[9px] text-gray-400">If omitted, a beautiful fine-jewelry placeholder image is assigned automatically.</p>
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase block">Category Image *</label>
+                      
+                      {/* Drag & Drop Area */}
+                      <div
+                        onDragEnter={handleCatDrag}
+                        onDragOver={handleCatDrag}
+                        onDragLeave={handleCatDrag}
+                        onDrop={handleCatDrop}
+                        className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all relative flex flex-col items-center justify-center min-h-[100px] cursor-pointer ${
+                          catDragActive 
+                            ? 'border-[#b89153] bg-[#b89153]/5' 
+                            : newCatImg 
+                              ? 'border-emerald-500 bg-emerald-50/5' 
+                              : 'border-gray-200 hover:border-gray-400 bg-[#FAF6F0]'
+                        }`}
+                      >
+                        {newCatImg ? (
+                          <div className="space-y-2 w-full flex flex-col items-center">
+                            <img 
+                              src={newCatImg} 
+                              alt="Category Preview" 
+                              className="w-14 h-14 object-cover rounded-xl border border-[#D4C19D]/20 shadow-xs" 
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-emerald-700 font-medium">Image uploaded!</span>
+                              <button 
+                                type="button" 
+                                onClick={(e) => { e.stopPropagation(); setNewCatImg(''); }} 
+                                className="text-[10px] text-red-500 hover:underline font-bold uppercase"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <UploadCloud className="h-6 w-6 text-gray-400 mx-auto animate-bounce" style={{ animationDuration: '3s' }} />
+                            <p className="text-[11px] text-gray-500">
+                              Drag & drop image here or <span className="text-[#b89153] font-semibold underline">browse file</span>
+                            </p>
+                            <p className="text-[9px] text-gray-400">Supports PNG, JPG, WEBP, SVG</p>
+                          </div>
+                        )}
+                        
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCatFileChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Manual text input URL fallback */}
+                      <div className="space-y-1 mt-2">
+                        <span className="text-[8px] font-bold text-gray-400 block tracking-widest text-center">— OR ENTER IMAGE URL —</span>
+                        <input
+                          type="text"
+                          value={newCatImg}
+                          onChange={(e) => setNewCatImg(e.target.value)}
+                          placeholder="Or paste jewelry image hosting URL"
+                          className="w-full bg-[#FAF6F0] border border-[#D4C19D]/20 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                        />
+                      </div>
                     </div>
 
                     <button

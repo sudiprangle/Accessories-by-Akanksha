@@ -56,7 +56,7 @@ const rawProducts: Product[] = [
       "pink square diamond 280 chain -3.jpg"
     ],
     "description": "A charming baguette cut pink tourmaline simulated zirconia, enclosed beautifully in durable golden claw prongs on an ultra-chic chain.",
-    "material": "18K Gold Plated Brass, Pink Cushion Cut Cubic Zirconia",
+    "material": "Waterproof Gold Plating, Pink Cushion Cut Cubic Zirconia",
     "inStock": true,
     "stockCount": 72,
     "badge": "Feminine Sparkle"
@@ -76,7 +76,7 @@ const rawProducts: Product[] = [
       "pretty small heart 249 chain-2.jpg"
     ],
     "description": "Sweet hollow golden outline heart design representing minimalist luxury. Lightweight necklace choice perfect for daily style layering.",
-    "material": "Real 18K Gold Plated Brass",
+    "material": "Premium Anti-Tarnish Gold Plated Brass",
     "inStock": true,
     "stockCount": 78,
     "badge": "Dainty Accent"
@@ -116,7 +116,7 @@ const rawProducts: Product[] = [
       "white flower 379 chain 5.jpg"
     ],
     "description": "A gorgeous white mother-of-pearl layered floral bloom pendant, bound safely in vintage royal golden rope linings. Extremely premium.",
-    "material": "Natural Mother of Pearl, 18K Gold Plated Detailing",
+    "material": "Natural Mother of Pearl, Premium Anti-Tarnish Gold Detailing",
     "inStock": true,
     "stockCount": 45,
     "badge": "Bestseller Premium"
@@ -196,7 +196,7 @@ const rawProducts: Product[] = [
       "v ring golden - 1 price 180.jpg"
     ],
     "description": "A striking golden chevron V band ring designed with a micro-polished mirror gloss. Excellent for creating stackable combinations.",
-    "material": "18K Gold Plated Brass, Hypoallergenic Base",
+    "material": "Anti-Tarnish Gold Plated Brass, Hypoallergenic Base",
     "inStock": true,
     "stockCount": 64,
     "badge": "Stackable Chic"
@@ -336,7 +336,7 @@ const rawProducts: Product[] = [
       "star earrings - 8 at 99.jpg"
     ],
     "description": "Dainty starry sky studs representing dreaming spirits. Micro studs that sit beautifully on main or secondary piercings.",
-    "material": "18K Gold Plated Brass Post",
+    "material": "Anti-Tarnish Gold Plated Brass Post",
     "inStock": true,
     "stockCount": 54,
     "badge": "Celestial Sparkle"
@@ -476,7 +476,7 @@ const rawProducts: Product[] = [
       "butterfly golden braclet 300 braclet -2.jpg"
     ],
     "description": "Highly intricate gold butterflies appearing to hover on a beautiful double layered fine link wrist chain.",
-    "material": "18K Gold Electroplated Double Wire Brass",
+    "material": "Premium Anti-Tarnish Double Wire Brass",
     "inStock": true,
     "stockCount": 46,
     "badge": "Whimsical Butterflies"
@@ -496,7 +496,7 @@ const rawProducts: Product[] = [
       "tulip braclet.jpg"
     ],
     "description": "A very sweet specialty tulip bud charm suspended on a beautiful dainty gold-electroplated link chain. Truly unique fashion designer detail.",
-    "material": "Cloisonné Enamel Tulip Bloom, 18k Gold Plated Chain",
+    "material": "Cloisonné Enamel Tulip Bloom, Waterproof Gold Plated Chain",
     "inStock": true,
     "stockCount": 41,
     "badge": "Tulip Garden"
@@ -649,6 +649,7 @@ const BASE_IMG_URL = "https://arakshe22extc-byte.github.io/acessriesbyakanksha1/
 
 export const products: Product[] = rawProducts.map(p => ({
   ...p,
+  badge: 'Anti-Tarnish',
   isTennisJewellery: TENNIS_IDS.includes(p.id) ? true : p.isTennisJewellery,
   images: p.images.map(img => img.startsWith('http') ? img : `${BASE_IMG_URL}${encodeURIComponent(img)}`)
 }));

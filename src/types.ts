@@ -32,6 +32,7 @@ export interface Order {
   date: string;
   customerName: string;
   customerEmail: string;
+  customerUserId?: string;
   shippingAddress: {
     address: string;
     city: string;
@@ -53,8 +54,10 @@ export interface Order {
   total: number;
   paymentMethod: string;
   paymentStatus: 'Paid' | 'Pending' | 'Failed';
-  shippingStatus: 'Processing' | 'Dispatched' | 'Out for Delivery' | 'Delivered';
+  paymentScreenshot?: string;
+  shippingStatus: 'Processing' | 'Dispatched' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
   trackingNumber: string;
+  cancelReason?: string;
 }
 
 export interface CustomerReview {

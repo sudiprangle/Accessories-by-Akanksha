@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, CreditCard, ShoppingBag, ShieldCheck, CheckCircle2, QrCode, Truck, Landmark } from 'lucide-react';
-import { CartItem, Order } from '../types';
+import { X, CreditCard, ShoppingBag, ShieldCheck, CheckCircle2, QrCode, Truck, Landmark, Upload, Trash2, Image, Sparkles } from 'lucide-react';
+import { CartItem, Order, User } from '../types';
 
 interface CheckoutModalProps {
   cartItems: CartItem[];
@@ -12,6 +12,7 @@ interface CheckoutModalProps {
   currentUserName?: string;
   deliveryCharge?: number;
   deliveryThreshold?: number;
+  currentUser?: User | null;
 }
 
 export default function CheckoutModal({
@@ -24,6 +25,7 @@ export default function CheckoutModal({
   currentUserName = '',
   deliveryCharge = 60,
   deliveryThreshold = 499,
+  currentUser,
 }: CheckoutModalProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Shipping, 2: Payment, 3: Completed
   
@@ -34,21 +36,21 @@ export default function CheckoutModal({
   const [shippingForm, setShippingForm] = useState({
     firstName: initialFirstName,
     lastName: initialLastName,
-    email: currentUserEmail,
-    phone: '',
+    email: currentUserEmail || currentUser?.email || '',
+    phone: currentUser?.mobile || '',
     address: '',
     city: '',
     state: '',
     pincode: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'cod'>('card');
-  const [cardForm, setCardForm] = useState({
-    number: '',
-    holder: currentUserName || 'AKANKSHA JEWELLER',
-    expiry: '',
-    cvv: '',
-  });
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
+  
+  // Drag and drop payment screenshot state
+  const [paymentScreenshotVal, setPaymentScreenshotVal] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [transactionRef, setTransactionRef] = useState('');
+  const [agreedToCodTerms, setAgreedToCodTerms] = useState(false);
 
   const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -71,12 +73,12 @@ export default function CheckoutModal({
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (paymentMethod === 'card' && (!cardForm.number || !cardForm.expiry || !cardForm.cvv)) {
-      alert('Please fill out your card information.');
+    if (paymentMethod === 'upi' && !paymentScreenshotVal) {
+      alert('Please upload a screenshot of your successful UPI payment first.');
       return;
     }
-    if (paymentMethod === 'upi' && !upiId.includes('@')) {
-      alert('Please provide a valid UPI Address (e.g., name@okaxis)');
+    if (paymentMethod === 'cod' && !agreedToCodTerms) {
+      alert('Please agree to the Cash on Delivery Terms & Conditions first.');
       return;
     }
 
@@ -91,7 +93,8 @@ export default function CheckoutModal({
         id: orderId,
         date: new Date().toISOString().split('T')[0],
         customerName: `${shippingForm.firstName} ${shippingForm.lastName}`.trim(),
-        customerEmail: shippingForm.email || 'N/A',
+        customerEmail: currentUser?.email || shippingForm.email || 'N/A',
+        customerUserId: currentUser?.email || currentUser?.mobile || '',
         shippingAddress: {
           address: shippingForm.address,
           city: shippingForm.city,
@@ -113,6 +116,7 @@ export default function CheckoutModal({
         total,
         paymentMethod: paymentMethod.toUpperCase(),
         paymentStatus: paymentMethod === 'cod' ? 'Pending' : 'Paid',
+        paymentScreenshot: paymentMethod === 'upi' && paymentScreenshotVal ? paymentScreenshotVal : undefined,
         shippingStatus: 'Processing',
         trackingNumber: trackingNo,
       };
@@ -122,6 +126,9 @@ export default function CheckoutModal({
       const productDetailsCombined = cartItems.map(item => `${item.product.name} (Qty: ${item.quantity}, Color: ${item.selectedColor || 'Gold'}, Size: ${item.selectedSize || 'Standard'})`).join(', ');
 
       const syncPayload = {
+        // Screenshot payload
+        paymentScreenshot: paymentMethod === 'upi' ? (paymentScreenshotVal || '') : '',
+        transactionRef: paymentMethod === 'upi' ? transactionRef : '',
         // First name & Last name combinations
         firstName: shippingForm.firstName,
         lastName: shippingForm.lastName,
@@ -218,16 +225,16 @@ export default function CheckoutModal({
         "MODE": paymentMethod.toUpperCase(),
         
         // Alternative values using more natural spacing/case values in case of validation on Google Form/Sheet end
-        "paymentMethodTitle": paymentMethod === 'card' ? 'Card' : paymentMethod === 'upi' ? 'UPI' : 'COD',
-        "paymentMethodFull": paymentMethod === 'card' ? 'Bank Card' : paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
-        "paymentMethodSimple": paymentMethod === 'card' ? 'Card' : paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
+        "paymentMethodTitle": paymentMethod === 'upi' ? 'UPI' : 'COD',
+        "paymentMethodFull": paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
+        "paymentMethodSimple": paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
         "paymentMethodLower": paymentMethod,
         
         // Directly maps space and lowercase variants to formatted values
-        "payment method simple": paymentMethod === 'card' ? 'Card' : paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
-        "Payment Method Simple": paymentMethod === 'card' ? 'Card' : paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
-        "Payment Method Text": paymentMethod === 'card' ? 'Bank Card' : paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
-        "payment method text": paymentMethod === 'card' ? 'Bank Card' : paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
+        "payment method simple": paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
+        "Payment Method Simple": paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery',
+        "Payment Method Text": paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
+        "payment method text": paymentMethod === 'upi' ? 'UPI (GPay/Paytm)' : 'Cash on Delivery (COD)',
 
         // Total Amount variants
         totalAmount: total,
@@ -425,17 +432,8 @@ export default function CheckoutModal({
               <div className="flex bg-[#FAF6F0] p-1 rounded-xl border border-[#D4C19D]/20 text-xs gap-1">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors ${
-                    paymentMethod === 'card' ? 'bg-[#1E1C1A] text-white' : 'text-gray-650 hover:bg-black/5'
-                  }`}
-                >
-                  Bank Card
-                </button>
-                <button
-                  type="button"
                   onClick={() => setPaymentMethod('upi')}
-                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors ${
+                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors cursor-pointer ${
                     paymentMethod === 'upi' ? 'bg-[#1E1C1A] text-white' : 'text-gray-650 hover:bg-black/5'
                   }`}
                 >
@@ -445,7 +443,7 @@ export default function CheckoutModal({
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('cod')}
-                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors ${
+                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors cursor-pointer ${
                     paymentMethod === 'cod' ? 'bg-[#1E1C1A] text-white' : 'text-gray-650 hover:bg-black/5'
                   }`}
                 >
@@ -455,119 +453,155 @@ export default function CheckoutModal({
 
               {/* Payment Details forms */}
               <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                {paymentMethod === 'card' && (
-                  <div className="space-y-4">
-                    {/* Interactive Simulated Card face */}
-                    <div className="w-full bg-gradient-to-br from-[#1E1C1A] to-[#3a3530] text-[#FAF6F0] rounded-2xl p-5 shadow-lg space-y-5 relative overflow-hidden border border-[#D4C19D]/20 animate-fade-up">
-                      <div className="absolute right-4 top-4 opacity-10">
-                        <ShoppingBag className="h-32 w-32" />
-                      </div>
-                      
-                      <div className="flex justify-between items-start">
-                        <span className="font-serif tracking-[0.2em] font-bold text-xs uppercase text-[#b89153]">
-                          AKANKSHA ELITE CARD
-                        </span>
-                        <CreditCard className="h-6 w-6 text-[#b89153]" />
-                      </div>
-
-                      <div className="space-y-1.5 pt-3">
-                        <span className="text-[9px] tracking-widest text-[#FAF6F0]/40 uppercase font-light">Card Number</span>
-                        <p className="font-mono text-base tracking-widest">
-                          {cardForm.number || '•••• •••• •••• ••••'}
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between items-end pt-2 text-[#FAF6F0]">
-                        <div>
-                          <span className="text-[8px] tracking-wider text-[#FAF6F0]/40 uppercase block font-light">Card Owner</span>
-                          <span className="text-xs tracking-wider uppercase font-medium">{cardForm.holder || 'HOLDER NAME'}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[8px] tracking-wider text-[#FAF6F0]/40 uppercase block font-light">Expiry</span>
-                          <span className="text-xs font-mono">{cardForm.expiry || 'MM/YY'}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[8px] tracking-wider text-[#FAF6F0]/40 uppercase block font-light">CVV</span>
-                          <span className="text-xs font-mono">{cardForm.cvv || '•••'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Inputs */}
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="col-span-3 space-y-1">
-                        <label className="text-[9px] font-bold tracking-wider uppercase text-gray-500">16-Digit Card Number</label>
-                        <input
-                          type="text"
-                          required
-                          maxLength={19}
-                          value={cardForm.number}
-                          onChange={(e) => {
-                            // auto-format spacing
-                            const val = e.target.value.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim();
-                            setCardForm({ ...cardForm, number: val });
-                          }}
-                          className="w-full bg-white border border-[#D4C19D]/25 rounded-xl px-3 py-2 text-xs text-gray-700 focus:outline-none"
-                          placeholder="4321 8765 9182 3847"
-                        />
-                      </div>
-                      <div className="col-span-1 space-y-1">
-                        <label className="text-[9px] font-bold tracking-wider uppercase text-gray-500">Expiry MM/YY</label>
-                        <input
-                          type="text"
-                          required
-                          maxLength={5}
-                          value={cardForm.expiry}
-                          onChange={(e) => setCardForm({ ...cardForm, expiry: e.target.value })}
-                          className="w-full bg-white border border-[#D4C19D]/25 rounded-xl px-3 py-2 text-xs text-gray-700 focus:outline-none"
-                          placeholder="12/30"
-                        />
-                      </div>
-                      <div className="col-span-1 space-y-1">
-                        <label className="text-[9px] font-bold tracking-wider uppercase text-gray-500">Secret CVV</label>
-                        <input
-                          type="password"
-                          required
-                          maxLength={3}
-                          value={cardForm.cvv}
-                          onChange={(e) => setCardForm({ ...cardForm, cvv: e.target.value })}
-                          className="w-full bg-white border border-[#D4C19D]/25 rounded-xl px-3 py-2 text-xs text-gray-700 focus:outline-none"
-                          placeholder="•••"
-                        />
-                      </div>
-                      <div className="col-span-1 space-y-1">
-                        <label className="text-[9px] font-bold tracking-wider uppercase text-gray-500">Holder Name</label>
-                        <input
-                          type="text"
-                          required
-                          value={cardForm.holder}
-                          onChange={(e) => setCardForm({ ...cardForm, holder: e.target.value })}
-                          className="w-full bg-white border border-[#D4C19D]/25 rounded-xl px-3 py-2 text-xs text-gray-700 focus:outline-none"
-                          placeholder="Cardholder Name"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {paymentMethod === 'upi' && (
-                  <div className="p-4 bg-white border border-[#D4C19D]/15 rounded-2xl flex flex-col items-center gap-4 text-center animate-fade-up">
-                    <QrCode className="h-28 w-28 text-gray-800 border-4 border-gray-100 p-1" />
-                    <div>
-                      <p className="font-semibold text-xs text-[#1E1C1A]">Scan QR or Enter UPI Address</p>
-                      <p className="text-[10px] text-gray-500 mt-1 max-w-xs leading-relaxed">
-                        Securely compatible with BHIM, Google Pay, PhonePe, and Airtel payments.
+                  <div className="space-y-4 animate-fade-up">
+                    {/* Exquisite QR Code Card mirroring user representation */}
+                    <div className="bg-[#FAF6F0] p-6 rounded-3xl border border-[#D4C19D]/20 flex flex-col items-center w-full shadow-xs text-center">
+                      
+                      {/* Avatar and Name */}
+                      <div className="flex items-center gap-2 mb-4 bg-white/60 px-4 py-2 rounded-2xl border border-[#D4C19D]/10">
+                        <div className="w-8 h-8 rounded-full border-2 border-white shadow-xs overflow-hidden bg-[#FAF6F0] flex items-center justify-center">
+                          <span className="font-serif text-[10px] font-bold text-gray-700">AR</span>
+                        </div>
+                        <span className="font-sans font-bold text-[#1E1C1A] text-xs tracking-wide">Akanksha R</span>
+                      </div>
+
+                      {/* White QR Code container */}
+                      <div className="bg-white p-5 rounded-2xl shadow-md w-full max-w-[260px] flex flex-col items-center relative border border-gray-100">
+                        <div className="relative w-40 h-40 flex items-center justify-center bg-white p-1">
+                          <img 
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=akanksharakshe13-1@okicici%26pn=Akanksha%20R%26cu=INR" 
+                            alt="Payment QR Code" 
+                            className="w-full h-full object-contain"
+                          />
+                          {/* GPay multicolored loop-themed center overlay */}
+                          <div className="absolute w-9 h-9 bg-white rounded-full p-1 border shadow-xs flex items-center justify-center">
+                            <span className="text-[9px] font-serif font-black flex flex-col items-center leading-none">
+                              <span className="text-blue-600 font-extrabold">G</span>
+                              <span className="text-red-500 font-bold text-[8px] -mt-1">Pay</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* UPI ID block */}
+                        <div className="w-full border-t border-gray-100 pt-3 mt-2">
+                          <p className="text-[10px] font-semibold text-gray-700 font-mono tracking-tight block">
+                            UPI ID: akanksharakshe13-1@okicici
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Footer outside white box */}
+                      <p className="text-[11px] text-gray-500 mt-4 font-medium flex items-center gap-1 justify-center leading-none">
+                        Scan to pay with any UPI app
                       </p>
                     </div>
-                    <div className="w-full space-y-1.5 self-stretch text-left">
-                      <label className="text-[9px] font-bold tracking-wider uppercase text-gray-500">BHIM UPI Address *</label>
+
+                    {/* Integrated Drag & Drop Payment Screenshot Area */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold tracking-wider uppercase text-gray-600 block">
+                        Upload Payment Screenshot * <span className="text-red-500 font-normal normal-case italic">(required)</span>
+                      </label>
+                      
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                        onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDragging(false);
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) {
+                            if (!file.type.startsWith('image/')) {
+                              alert('Please upload an image file (PNG, JPG, JPEG) for the payment proof.');
+                              return;
+                            }
+                            const r = new FileReader();
+                            r.onload = () => setPaymentScreenshotVal(r.result as string);
+                            r.readAsDataURL(file);
+                          }
+                        }}
+                        onClick={() => document.getElementById('screenshot-picker')?.click()}
+                        className={`border-2 border-dashed rounded-2xl p-5 text-center transition-all cursor-pointer relative flex flex-col items-center justify-center min-h-[140px] ${
+                          isDragging 
+                            ? 'border-[#b89153] bg-[#b89153]/5' 
+                            : paymentScreenshotVal 
+                              ? 'border-emerald-500/80 bg-emerald-50/5' 
+                              : 'border-[#D4C19D]/30 bg-white hover:border-[#b89153]/60'
+                        }`}
+                      >
+                        <input
+                          id="screenshot-picker"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (!file.type.startsWith('image/')) {
+                                alert('Please upload an image file (PNG, JPG, JPEG) for the payment proof.');
+                                return;
+                              }
+                              const r = new FileReader();
+                              r.onload = () => setPaymentScreenshotVal(r.result as string);
+                              r.readAsDataURL(file);
+                            }
+                          }}
+                        />
+
+                        {paymentScreenshotVal ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center space-y-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="w-16 h-16 rounded-xl overflow-hidden border border-emerald-500/30 relative shadow-sm group">
+                              <img src={paymentScreenshotVal} alt="Screenshot preview" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => setPaymentScreenshotVal(null)}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                              >
+                                <Trash2 className="h-4 w-4 text-rose-400" />
+                              </button>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-emerald-700 font-bold text-[11px] flex items-center gap-1 justify-center leading-none">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Screenshot Loaded!
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setPaymentScreenshotVal(null)}
+                                className="text-[10px] text-red-500 hover:underline mt-0.5"
+                              >
+                                Remove & upload another
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-1 my-1 pointer-events-none flex flex-col items-center select-none">
+                            <div className="p-2.5 bg-[#FAF6F0] rounded-full text-[#b89153]/80 mb-1">
+                              <Upload className="h-4 w-4" />
+                            </div>
+                            <p className="text-[11px] font-semibold text-gray-750 leading-none">
+                              Drag & drop payment screenshot here
+                            </p>
+                            <p className="text-[9px] text-gray-400 font-light mt-0.5">
+                              or click to browse from files (PNG, JPG, JPEG)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Optional Transaction reference identifier */}
+                    <div className="w-full space-y-1 text-left">
+                      <label className="text-[10px] font-bold tracking-wider uppercase text-gray-500 block">
+                        UPI Transaction / UTR Ref ID <span className="text-gray-400 font-normal lowercase italic">(optional)</span>
+                      </label>
                       <input
                         type="text"
-                        required
-                        value={upiId}
-                        onChange={(e) => setUpiId(e.target.value)}
-                        className="w-full bg-[#FAF6F0] border border-[#D4C19D]/20 rounded-xl px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#b89153]"
-                        placeholder="akanksha@okaxis"
+                        maxLength={12}
+                        value={transactionRef}
+                        onChange={(e) => setTransactionRef(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="w-full bg-white border border-[#D4C19D]/20 rounded-xl px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#b89153]"
+                        placeholder="12-digit transaction Ref Number"
                       />
                     </div>
                   </div>
@@ -576,14 +610,48 @@ export default function CheckoutModal({
 
 
                 {paymentMethod === 'cod' && (
-                  <div className="p-4 bg-yellow-50/50 border border-yellow-200/60 rounded-2xl flex items-start gap-3 animate-fade-up">
-                    <Truck className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <div className="space-y-1 text-left">
-                      <p className="font-semibold text-xs text-[#1E1C1A] uppercase tracking-wide">Cash on Delivery (COD) Options</p>
-                      <p className="text-[11px] text-gray-600 leading-relaxed font-light">
-                        Pay in cash upon handoff courier arrival. An Indian SMS pin validation will be triggered to +91 phone details prior to final dispatch.
-                      </p>
+                  <div className="space-y-4 animate-fade-up text-left">
+                    {/* COD Info & Policy Box */}
+                    <div className="p-4 bg-amber-50/40 border border-[#D4C19D]/30 rounded-2xl flex flex-col gap-3">
+                      <div className="flex items-start gap-2.5">
+                        <Truck className="h-5 w-5 text-[#b89153] mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="font-semibold text-xs text-[#1E1C1A] uppercase tracking-wide">Cash on Delivery (COD) Option</p>
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-normal">
+                            Pay in cash upon handoff courier arrival. Please read carefully and agree to our luxury terms before proceeding.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Explicit Terms list */}
+                      <div className="border-t border-[#D4C19D]/15 pt-2.5 space-y-2 text-[10px] text-gray-600 font-light leading-normal">
+                        <p className="flex items-start gap-1.5">
+                          <span className="text-[#b89153] font-bold">&bull;</span>
+                          <span><strong>A Phone Verification/Call</strong> will be triggered to your shipping contact listed (+91 {shippingForm.phone || 'recipient number'}) prior to final dispatch. If unreachable, the order will be auto-canceled.</span>
+                        </p>
+                        <p className="flex items-start gap-1.5">
+                          <span className="text-[#b89153] font-bold">&bull;</span>
+                          <span><strong>No Open-Delivery option:</strong> You must complete full Cash payment to the logistics partner before opening or unpacking the parcel.</span>
+                        </p>
+                        <p className="flex items-start gap-1.5">
+                          <span className="text-[#b89153] font-bold">&bull;</span>
+                          <span><strong>Package Refusal Policy:</strong> Repeated deliberate rejection or refusal of shipment upon delivery will restrict your account from future dispatch privileges.</span>
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Interactive Terms checkmark checkbox */}
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none bg-white p-3 rounded-xl border border-[#D4C19D]/20 hover:border-[#b89153]/55 transition-colors">
+                      <input 
+                        type="checkbox"
+                        checked={agreedToCodTerms}
+                        onChange={(e) => setAgreedToCodTerms(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-[#D4C19D]/40 text-[#b89153] focus:ring-[#b89153] cursor-pointer"
+                      />
+                      <span className="text-[11px] text-gray-650 leading-snug">
+                        I write to agree and accept the <strong>Cash on Delivery (COD) Terms & Conditions</strong> and commit to hand over the total amount of <strong>₹{total.toLocaleString('en-IN')}</strong> to the shipping courier agent.
+                      </span>
+                    </label>
                   </div>
                 )}
 

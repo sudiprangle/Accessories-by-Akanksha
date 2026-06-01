@@ -121,7 +121,7 @@ export default function CartDrawer({
                   <div className="min-w-0 flex-1">
                     <h3 className="text-xs font-semibold text-[#1E1C1A] truncate">{item.product.name}</h3>
                     <p className="text-[10px] text-gray-500 capitalize italic mt-0.5 font-light">
-                      {item.selectedColor || 'Gold'} / {item.selectedSize || 'Standard'}
+                      Standard Size • Anti-Tarnish Finish
                     </p>
                     
                     {/* Item single/multi pricing */}
@@ -153,7 +153,16 @@ export default function CartDrawer({
                     >
                       -
                     </button>
-                    <span className="px-1 text-xs font-bold text-gray-700">{item.quantity}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        onUpdateQuantity(item.product.id, isNaN(val) || val < 1 ? 1 : val, item.selectedColor, item.selectedSize);
+                      }}
+                      className="w-8 text-center text-xs font-bold text-gray-700 bg-transparent border-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none animate-fade-in"
+                    />
                     <button
                       onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1, item.selectedColor, item.selectedSize)}
                       className="px-2 py-1 text-xs hover:text-[#b89153]"

@@ -24,12 +24,12 @@ export default function Hero({ onShopCollection, onExploreTennis }: HeroProps) {
 
             <div className="space-y-4">
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.1] text-[#1E1C1A]">
-                The Elite <br />
-                <span className="italic font-light text-[#b89153]">Tennis Jewellery</span> <br />
-                Unveiled.
+                The Premium <br />
+                <span className="italic font-light text-[#b89153]">Waterproof & Anti-Tarnish</span> <br />
+                Jewellery.
               </h1>
               <p className="text-gray-600 text-sm sm:text-base max-w-lg font-light leading-relaxed">
-                Premium anti-tarnish and waterproof treasures designed for the contemporary woman. Inspired by athletic grace, radiating opulent brilliance with every swing.
+                Premium anti-tarnish and waterproof treasures designed for the contemporary woman. Engineered for daily elegance, radiating opulent brilliance with every wear.
               </p>
             </div>
 
@@ -61,17 +61,17 @@ export default function Hero({ onShopCollection, onExploreTennis }: HeroProps) {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <button
-                onClick={onExploreTennis}
+                onClick={onShopCollection}
                 className="w-full sm:w-auto px-8 py-3.5 bg-[#1E1C1A] hover:bg-[#b89153] text-white text-xs font-semibold tracking-wider rounded-full uppercase transition-all duration-300 shadow-lg shadow-[#1E1C1A]/10 flex items-center justify-center gap-2 group cursor-pointer"
               >
-                <span>Shop Tennis Core</span>
+                <span>Shop Waterproof Treasures</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1.5 transition-transform" />
               </button>
               <button
                 onClick={onShopCollection}
                 className="w-full sm:w-auto px-8 py-3.5 bg-transparent border border-[#1E1C1A] text-[#1E1C1A] hover:bg-[#1E1C1A] hover:text-[#FAF6F0] text-xs font-semibold tracking-wider rounded-full uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Explore Full Collection</span>
+                <span>Explore All Jewelry</span>
               </button>
             </div>
           </div>

@@ -15,7 +15,8 @@ import {
   Search,
   SlidersHorizontal,
   ChevronDown,
-  Lock
+  Lock,
+  Droplets
 } from 'lucide-react';
 
 import { Product, CartItem, Order, User } from './types';
@@ -84,7 +85,7 @@ export default function App() {
 
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [onlyTennis, setOnlyTennis] = useState<boolean>(false);
+  const [onlyWaterproof, setOnlyWaterproof] = useState<boolean>(false);
 
   // --- DRAWER & OVERLAY MODAL STATES ---
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -117,7 +118,7 @@ export default function App() {
         localStorage.setItem('akanksha_products', JSON.stringify(baseProducts));
         productsToUse = baseProducts;
       } else {
-        productsToUse = parsedProds;
+        productsToUse = parsedProds.map((p: any) => ({ ...p, badge: 'Anti-Tarnish' }));
       }
     } else {
       localStorage.setItem('akanksha_products', JSON.stringify(baseProducts));
@@ -267,6 +268,11 @@ export default function App() {
 
   // --- CHECKOUT COUPLERS ---
   const handleStartCheckout = (discount: number, promo: string) => {
+    if (!currentUser) {
+      alert('To complete your luxurious purchase, please Register or Log In first. This keeps your delivery information and purchase receipt secure under your account!');
+      setAuthOpen(true);
+      return;
+    }
     setActiveDiscount(discount);
     setActivePromoCode(promo);
     setCartOpen(false);
@@ -279,9 +285,35 @@ export default function App() {
     const updatedOrders = [newOrder, ...orders];
     saveOrders(updatedOrders);
     
+    // Reduce product quantities in Manage Products & Inventory
+    const updatedProducts = products.map((p) => {
+      const orderedItem = newOrder.items.find((item) => item.productId === p.id);
+      if (orderedItem) {
+        const newStock = Math.max(0, p.stockCount - orderedItem.quantity);
+        return {
+          ...p,
+          stockCount: newStock,
+          inStock: newStock > 0,
+        };
+      }
+      return p;
+    });
+    saveProducts(updatedProducts);
+    
     // Clear active card purchases
     saveCart([]);
     setCheckoutOpen(false);
+
+    // Save in local guest session order list
+    try {
+      const localGuestIds = JSON.parse(localStorage.getItem('akanksha_session_order_ids') || '[]');
+      if (!localGuestIds.includes(newOrder.id)) {
+        localGuestIds.push(newOrder.id);
+        localStorage.setItem('akanksha_session_order_ids', JSON.stringify(localGuestIds));
+      }
+    } catch (err) {
+      console.warn('Silent local guest sync error:', err);
+    }
     
     // Auto redirect target tracker input
     setTrackImmediateId(newOrder.id);
@@ -309,14 +341,57 @@ export default function App() {
     saveProducts(updated);
   };
 
-  const handleAdminUpdateOrderStatus = (orderId: string, newStatus: Order['shippingStatus']) => {
+  const handleAdminUpdateOrderStatus = (orderId: string, newStatus: Order['shippingStatus'], reason?: string) => {
+    const orderToUpdate = orders.find((o) => o.id === orderId);
+    if (!orderToUpdate) return;
+
+    const oldStatus = orderToUpdate.shippingStatus;
+    if (oldStatus === newStatus) return;
+
     const updated = orders.map((o) => {
       if (o.id === orderId) {
-        return { ...o, shippingStatus: newStatus };
+        return { 
+          ...o, 
+          shippingStatus: newStatus,
+          ...(newStatus === 'Cancelled' && reason ? { cancelReason: reason } : {})
+        };
       }
       return o;
     });
     saveOrders(updated);
+
+    // If changing TO Cancelled from active status, restore inventory stock count
+    if (newStatus === 'Cancelled') {
+      const updatedProducts = products.map((p) => {
+        const orderedItem = orderToUpdate.items.find((item) => item.productId === p.id);
+        if (orderedItem) {
+          const newStock = p.stockCount + orderedItem.quantity;
+          return {
+            ...p,
+            stockCount: newStock,
+            inStock: true,
+          };
+        }
+        return p;
+      });
+      saveProducts(updatedProducts);
+    }
+    // If changing FROM Cancelled to active status, reduce inventory stock count
+    else if (oldStatus === 'Cancelled') {
+      const updatedProducts = products.map((p) => {
+        const orderedItem = orderToUpdate.items.find((item) => item.productId === p.id);
+        if (orderedItem) {
+          const newStock = Math.max(0, p.stockCount - orderedItem.quantity);
+          return {
+            ...p,
+            stockCount: newStock,
+            inStock: newStock > 0,
+          };
+        }
+        return p;
+      });
+      saveProducts(updatedProducts);
+    }
   };
 
   const handleAdminDeleteOrder = (orderId: string) => {
@@ -336,10 +411,10 @@ export default function App() {
         p.description.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
 
-    // 3. Tennis check
-    const matchesTennis = onlyTennis ? p.isTennisJewellery : true;
+    // 3. Waterproof check
+    const matchesWaterproof = onlyWaterproof ? (p.isWaterproof !== false || p.badge?.toLowerCase().includes('waterproof') || p.id === 'site-cnt-01') : true;
 
-    return matchesCategory && matchesSearch && matchesTennis;
+    return matchesCategory && matchesSearch && matchesWaterproof;
   });
 
   const bestsellers = products.filter((p) => p.isBestseller);
@@ -352,7 +427,7 @@ export default function App() {
         categories={categories}
         onCategoryChange={(cat) => {
           setActiveCategory(cat);
-          setOnlyTennis(false);
+          setOnlyWaterproof(false);
           const block = document.getElementById('boutique-showcase-grid');
           if (block) block.scrollIntoView({ behavior: 'smooth' });
         }}
@@ -364,6 +439,11 @@ export default function App() {
         onOpenWishlist={() => setWishlistOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenOrderTracker={() => {
+          if (!currentUser) {
+            alert('To securely track your orders, you must be logged in. Let\'s get you signed in or registered first!');
+            setAuthOpen(true);
+            return;
+          }
           setTrackImmediateId('');
           setOrderTrackOpen(true);
         }}
@@ -387,12 +467,12 @@ export default function App() {
         <Hero 
           onShopCollection={() => {
             setActiveCategory('all');
-            setOnlyTennis(false);
+            setOnlyWaterproof(false);
             const block = document.getElementById('boutique-showcase-grid');
             if (block) block.scrollIntoView({ behavior: 'smooth' });
           }}
           onExploreTennis={() => {
-            setOnlyTennis(true);
+            setOnlyWaterproof(true);
             setActiveCategory('all');
             const block = document.getElementById('boutique-showcase-grid');
             if (block) block.scrollIntoView({ behavior: 'smooth' });
@@ -415,7 +495,7 @@ export default function App() {
                   key={cat.id}
                   onClick={() => {
                     setActiveCategory(cat.id);
-                    setOnlyTennis(false);
+                    setOnlyWaterproof(false);
                     const block = document.getElementById('boutique-showcase-grid');
                     if (block) block.scrollIntoView({ behavior: 'smooth' });
                   }}
@@ -444,13 +524,13 @@ export default function App() {
               <button 
                 onClick={() => {
                   setActiveCategory('all');
-                  setOnlyTennis(true);
+                  setOnlyWaterproof(true);
                   const block = document.getElementById('boutique-showcase-grid');
                   if (block) block.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="text-xs uppercase font-bold text-[#b89153] hover:underline flex items-center gap-1 shrink-0 px-4 py-2 hover:bg-[#FAF6F0] rounded-full transition-colors"
               >
-                <span>Discover Tennis Elite</span>
+                <span>Discover Waterproof Jewels</span>
                 <ArrowRight className="h-3 w-3" />
               </button>
             </div>
@@ -492,10 +572,10 @@ export default function App() {
                     key={tab.id}
                     onClick={() => {
                       setActiveCategory(tab.id);
-                      setOnlyTennis(false);
+                      setOnlyWaterproof(false);
                     }}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                      activeCategory === tab.id && !onlyTennis
+                      activeCategory === tab.id && !onlyWaterproof
                         ? 'bg-[#1E1C1A] text-white'
                         : 'bg-[#FAF6F0] hover:bg-[#D4C19D]/15 text-gray-600'
                     }`}
@@ -505,19 +585,19 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Right Tennis exclusive toggle */}
+              {/* Right Waterproof exclusive toggle */}
               <button
                 onClick={() => {
-                  setOnlyTennis(!onlyTennis);
+                  setOnlyWaterproof(!onlyWaterproof);
                 }}
                 className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 border transition-all cursor-pointer ${
-                  onlyTennis
-                    ? 'bg-[#b89153] text-[#FAF6F0] border-[#b89153]'
-                    : 'bg-white text-amber-700 border-[#D4C19D]/30 shadow-xs hover:border-amber-600'
+                  onlyWaterproof
+                    ? 'bg-[#1E1C1A] text-[#FAF6F0] border-[#1E1C1A]'
+                    : 'bg-white text-gray-700 border-[#D4C19D]/30 shadow-xs hover:border-gray-400'
                 }`}
               >
-                <Sparkles className={`h-3.5 w-3.5 ${onlyTennis ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                <span>Sparkling Tennis Only</span>
+                <Droplets className="h-3.5 w-3.5" />
+                <span>Waterproof Only</span>
               </button>
             </div>
           </div>
@@ -536,7 +616,7 @@ export default function App() {
                 onClick={() => {
                   setSearchQuery('');
                   setActiveCategory('all');
-                  setOnlyTennis(false);
+                  setOnlyWaterproof(false);
                 }}
                 className="mt-2 text-xs font-semibold text-[#b89153] hover:underline uppercase tracking-wider"
               >
@@ -579,11 +659,11 @@ export default function App() {
           <div className="space-y-3 text-left">
             <h4 className="text-[#b89153] text-xs font-bold uppercase tracking-widest font-serif">Deep Curations</h4>
             <ul className="space-y-2 text-xs text-gray-400">
-              <li><button onClick={() => { setActiveCategory('necklaces'); setOnlyTennis(true); }} className="hover:text-white transition-colors">Elite Tennis Chains</button></li>
-              <li><button onClick={() => { setActiveCategory('bracelets'); setOnlyTennis(true); }} className="hover:text-white transition-colors">Elite Tennis Bracelets</button></li>
-              <li><button onClick={() => { setActiveCategory('necklaces'); setOnlyTennis(false); }} className="hover:text-white transition-colors">Classic Anti-Tarnish Chains</button></li>
-              <li><button onClick={() => { setActiveCategory('rings'); setOnlyTennis(false); }} className="hover:text-white transition-colors">Chevron Rings</button></li>
-              <li><button onClick={() => { setActiveCategory('sets'); setOnlyTennis(false); }} className="hover:text-white transition-colors">Waterproof Gifts Combos</button></li>
+              <li><button onClick={() => { setActiveCategory('necklaces'); setOnlyWaterproof(true); }} className="hover:text-white transition-colors">Premium Waterproof Chains</button></li>
+              <li><button onClick={() => { setActiveCategory('bracelets'); setOnlyWaterproof(true); }} className="hover:text-white transition-colors">Waterproof Bracelets</button></li>
+              <li><button onClick={() => { setActiveCategory('necklaces'); setOnlyWaterproof(false); }} className="hover:text-white transition-colors">Classic Anti-Tarnish Chains</button></li>
+              <li><button onClick={() => { setActiveCategory('rings'); setOnlyWaterproof(false); }} className="hover:text-white transition-colors">Chevron Rings</button></li>
+              <li><button onClick={() => { setActiveCategory('sets'); setOnlyWaterproof(false); }} className="hover:text-white transition-colors">Waterproof Gifts Combos</button></li>
             </ul>
           </div>
 
@@ -667,6 +747,7 @@ export default function App() {
           currentUserName={currentUser?.name || ''}
           deliveryCharge={deliveryCharge}
           deliveryThreshold={deliveryThreshold}
+          currentUser={currentUser}
         />
       )}
 
@@ -676,6 +757,8 @@ export default function App() {
           orders={orders}
           onClose={() => setOrderTrackOpen(false)}
           onTrackImmediateId={trackImmediateId}
+          onCancelOrder={(orderId, reason) => handleAdminUpdateOrderStatus(orderId, 'Cancelled', reason)}
+          currentUser={currentUser}
         />
       )}
 

@@ -272,12 +272,13 @@ export default function Navbar({
 
                       <button
                         onClick={() => {
-                          onOpenOrderTracker();
+                          alert('To view and track your orders, please Log In or Sign Up first!');
+                          onOpenAuth();
                           setShowUserDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A] hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-xs text-[#1E1C1A]/70 hover:bg-[#FAF6F0] hover:text-[#b89153] transition-colors"
                       >
-                        Anonymous Guest Order Tracking
+                        My Orders & Live Tracking (Login Required)
                       </button>
                     </>
                   )}

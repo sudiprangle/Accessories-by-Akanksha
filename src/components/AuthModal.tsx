@@ -38,7 +38,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     return () => clearInterval(timer);
   }, [isOtpStage, otpCountdown]);
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleDirectRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorNotice('');
 
@@ -86,27 +86,6 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
       }
     }
 
-    // Generate simulated 4-digit code
-    const generated = String(Math.floor(1000 + Math.random() * 9000));
-    setOtpCode(generated);
-    setOtpCountdown(60);
-    setIsOtpStage(true);
-
-    console.log(`💬 [SMS GATEWAY SIMULATOR] Sent OTP code "${generated}" to contact number: ${mobileClean}`);
-  };
-
-  const handleVerifyOtpAndRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorNotice('');
-
-    if (userInputOtp.length < 4) {
-      setErrorNotice('Kindly enter a valid 4-digit verification OTP code.');
-      return;
-    }
-
-    const storedUsers = JSON.parse(localStorage.getItem('akanksha_users') || '[]');
-    const mobileClean = signupMobile.trim().replace(/\D/g, '');
-
     const newUser = {
       name: signupName.trim(),
       mobile: mobileClean,
@@ -128,14 +107,8 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     onClose();
   };
 
-  const handleResendOtp = () => {
-    const generated = String(Math.floor(1000 + Math.random() * 9000));
-    setOtpCode(generated);
-    setOtpCountdown(60);
-    setErrorNotice('');
-
-    console.log(`💬 [SMS GATEWAY SIMULATOR] Resent code "${generated}" to mobile contact.`);
-  };
+  const handleVerifyOtpAndRegister = (e: React.FormEvent) => { e.preventDefault(); };
+  const handleResendOtp = () => {};
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -360,7 +333,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             </form>
           ) : (
             /* REGISTER VIEW */
-            <form onSubmit={handleSendOtp} className="space-y-4">
+            <form onSubmit={handleDirectRegister} className="space-y-4">
               <div className="space-y-1 text-left">
                 <label className="text-[10px] font-bold tracking-wider uppercase text-gray-500">Your Full Name *</label>
                 <input
@@ -374,7 +347,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               </div>
 
               <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold tracking-wider uppercase text-gray-500">Mobile Phone Number (OTP Verified) *</label>
+                <label className="text-[10px] font-bold tracking-wider uppercase text-gray-500">Mobile Phone Number *</label>
                 <div className="relative">
                   <input
                     type="tel"
@@ -425,7 +398,7 @@ export default function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 className="w-full py-3 bg-[#1E1C1A] hover:bg-[#b89153] text-[#FAF6F0] rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
-                <span>Send OTP & Sign Up</span>
+                <span>Create Account & Sign Up</span>
               </button>
 
               <div className="text-center pt-2">

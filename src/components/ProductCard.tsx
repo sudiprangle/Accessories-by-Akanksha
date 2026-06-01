@@ -35,17 +35,10 @@ export default function ProductCard({
 
         {/* Badges Overlay */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-          {product.isTennisJewellery && (
-            <span className="bg-[#b89153] text-[#FAF6F0] text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Sparkles className="h-3 w-3 animate-pulse" />
-              Tennis Elite
-            </span>
-          )}
-          {product.badge && !product.isTennisJewellery && (
-            <span className="bg-[#1E1C1A] text-[#FAF6F0] text-[9px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
-              {product.badge}
-            </span>
-          )}
+          <span className="bg-[#b89153] text-[#FAF6F0] text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+            <Sparkles className="h-3 w-3 animate-pulse" />
+            Anti-Tarnish
+          </span>
           {product.isNew && (
             <span className="bg-[#FAF6F0] text-[#1E1C1A] text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-[#D4C19D]/30 shadow-xs">
               NEW
@@ -98,10 +91,6 @@ export default function ProductCard({
             {product.name}
           </h3>
 
-          {/* Material detail short snippet */}
-          <p className="text-gray-500 text-[11px] leading-relaxed line-clamp-1 italic font-light">
-            {product.material}
-          </p>
         </div>
 
         {/* Pricing tag & CTA Button wrapper */}

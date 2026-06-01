@@ -44,13 +44,12 @@ export default function CheckoutModal({
     pincode: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
+  const [paymentMethod, setPaymentMethod] = useState<'upi'>('upi');
   
   // Drag and drop payment screenshot state
   const [paymentScreenshotVal, setPaymentScreenshotVal] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [transactionRef, setTransactionRef] = useState('');
-  const [agreedToCodTerms, setAgreedToCodTerms] = useState(false);
 
   const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -73,12 +72,8 @@ export default function CheckoutModal({
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (paymentMethod === 'upi' && !paymentScreenshotVal) {
+    if (!paymentScreenshotVal) {
       alert('Please upload a screenshot of your successful UPI payment first.');
-      return;
-    }
-    if (paymentMethod === 'cod' && !agreedToCodTerms) {
-      alert('Please agree to the Cash on Delivery Terms & Conditions first.');
       return;
     }
 
@@ -114,9 +109,9 @@ export default function CheckoutModal({
         subtotal,
         deliveryCharges,
         total,
-        paymentMethod: paymentMethod.toUpperCase(),
-        paymentStatus: paymentMethod === 'cod' ? 'Pending' : 'Paid',
-        paymentScreenshot: paymentMethod === 'upi' && paymentScreenshotVal ? paymentScreenshotVal : undefined,
+        paymentMethod: 'UPI',
+        paymentStatus: 'Paid',
+        paymentScreenshot: paymentScreenshotVal ? paymentScreenshotVal : undefined,
         shippingStatus: 'Processing',
         trackingNumber: trackingNo,
       };
@@ -428,33 +423,15 @@ export default function CheckoutModal({
                 Complete Safe Payment
               </h3>
 
-              {/* Selector tabs */}
-              <div className="flex bg-[#FAF6F0] p-1 rounded-xl border border-[#D4C19D]/20 text-xs gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('upi')}
-                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors cursor-pointer ${
-                    paymentMethod === 'upi' ? 'bg-[#1E1C1A] text-white' : 'text-gray-650 hover:bg-black/5'
-                  }`}
-                >
-                  UPI (GPay/Paytm)
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('cod')}
-                  className={`flex-1 py-1.5 text-center rounded-lg font-medium transition-colors cursor-pointer ${
-                    paymentMethod === 'cod' ? 'bg-[#1E1C1A] text-white' : 'text-gray-650 hover:bg-black/5'
-                  }`}
-                >
-                  Cash (COD)
-                </button>
+              {/* Secure UPI Payment Only */}
+              <div className="flex bg-[#FAF6F0] p-3 rounded-xl border border-[#D4C19D]/20 text-xs gap-2 items-center text-[#1E1C1A]">
+                <ShieldCheck className="h-4.5 w-4.5 text-[#b89153] flex-shrink-0" />
+                <span className="font-semibold uppercase tracking-wider text-[11px]">Secure Online Payment via UPI</span>
               </div>
 
               {/* Payment Details forms */}
               <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                {paymentMethod === 'upi' && (
-                  <div className="space-y-4 animate-fade-up">
+                <div className="space-y-4 animate-fade-up">
                     {/* Exquisite QR Code Card mirroring user representation */}
                     <div className="bg-[#FAF6F0] p-6 rounded-3xl border border-[#D4C19D]/20 flex flex-col items-center w-full shadow-xs text-center">
                       
@@ -605,55 +582,6 @@ export default function CheckoutModal({
                       />
                     </div>
                   </div>
-                )}
-
-
-
-                {paymentMethod === 'cod' && (
-                  <div className="space-y-4 animate-fade-up text-left">
-                    {/* COD Info & Policy Box */}
-                    <div className="p-4 bg-amber-50/40 border border-[#D4C19D]/30 rounded-2xl flex flex-col gap-3">
-                      <div className="flex items-start gap-2.5">
-                        <Truck className="h-5 w-5 text-[#b89153] mt-0.5 flex-shrink-0" />
-                        <div className="space-y-1">
-                          <p className="font-semibold text-xs text-[#1E1C1A] uppercase tracking-wide">Cash on Delivery (COD) Option</p>
-                          <p className="text-[11px] text-gray-500 leading-relaxed font-normal">
-                            Pay in cash upon handoff courier arrival. Please read carefully and agree to our luxury terms before proceeding.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Explicit Terms list */}
-                      <div className="border-t border-[#D4C19D]/15 pt-2.5 space-y-2 text-[10px] text-gray-600 font-light leading-normal">
-                        <p className="flex items-start gap-1.5">
-                          <span className="text-[#b89153] font-bold">&bull;</span>
-                          <span><strong>A Phone Verification/Call</strong> will be triggered to your shipping contact listed (+91 {shippingForm.phone || 'recipient number'}) prior to final dispatch. If unreachable, the order will be auto-canceled.</span>
-                        </p>
-                        <p className="flex items-start gap-1.5">
-                          <span className="text-[#b89153] font-bold">&bull;</span>
-                          <span><strong>No Open-Delivery option:</strong> You must complete full Cash payment to the logistics partner before opening or unpacking the parcel.</span>
-                        </p>
-                        <p className="flex items-start gap-1.5">
-                          <span className="text-[#b89153] font-bold">&bull;</span>
-                          <span><strong>Package Refusal Policy:</strong> Repeated deliberate rejection or refusal of shipment upon delivery will restrict your account from future dispatch privileges.</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Interactive Terms checkmark checkbox */}
-                    <label className="flex items-start gap-2.5 cursor-pointer select-none bg-white p-3 rounded-xl border border-[#D4C19D]/20 hover:border-[#b89153]/55 transition-colors">
-                      <input 
-                        type="checkbox"
-                        checked={agreedToCodTerms}
-                        onChange={(e) => setAgreedToCodTerms(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-[#D4C19D]/40 text-[#b89153] focus:ring-[#b89153] cursor-pointer"
-                      />
-                      <span className="text-[11px] text-gray-650 leading-snug">
-                        I write to agree and accept the <strong>Cash on Delivery (COD) Terms & Conditions</strong> and commit to hand over the total amount of <strong>₹{total.toLocaleString('en-IN')}</strong> to the shipping courier agent.
-                      </span>
-                    </label>
-                  </div>
-                )}
 
                 <div className="flex gap-2 pt-2">
                   <button
